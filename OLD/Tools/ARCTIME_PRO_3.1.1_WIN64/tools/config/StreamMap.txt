@@ -1,0 +1,20 @@
+#codec_name copy_stream output_format file_extension
+#* codec_name can use regex
+#* copy_stream 0=false 1=true
+#* output_format @=auto
+h264 1 @ m4v
+aac 1 @ m4a
+pcm_dvd 1 @ mpeg
+pcm_.+ 1 @ wav
+mpeg4 1 @ mp4
+mpeg1video|mpeg2video 1 @ mpeg
+vp8|vp9 1 @ webm
+theora|vorbis 1 @ ogg
+subrip|mov_text 0 srt srt
+hdmv_pgs_subtitle 1 sup sup
+hdmv_text_subtitle 1 @ txt
+dnxhd|prores 1 @ mov
+dvb_subtitle|dvd_subtitle 1 @ mkv
+dvb_teletext 0 srt srt
+truehd 1 @ ac3
+text 1 data txt

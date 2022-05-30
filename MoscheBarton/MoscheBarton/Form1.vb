@@ -27,7 +27,11 @@ Public Class Form1
                 Case "Monoton"
                     DrawFont = New Font(myfont.Families(0), font_size * ScaleRatio)
                 Case Else
-                    DrawFont = New Font(font, font_size * ScaleRatio)
+                    If font = Nothing Then
+                        DrawFont = New Font("微軟正黑體", font_size * ScaleRatio)
+                    Else
+                        DrawFont = New Font(font, font_size * ScaleRatio)
+                    End If
             End Select
 
             Select Case Align
@@ -77,7 +81,7 @@ Public Class Form1
         Public PressedImage As Bitmap
         Public Activated As Boolean = False
 
-        Public Function Draw(e As PaintEventArgs, Mouse As Point, MousePressed As Boolean, ByRef Player As WMPLib.WindowsMediaPlayer, Volume As Integer) As Integer
+        Public Function Draw(e As PaintEventArgs, Mouse As Point, MousePressed As Boolean, ByRef Player As WMPLib.WindowsMediaPlayer, Volume As Double) As Integer
             If Box.X <= Mouse.X And Mouse.X <= Box.X + Box.Width And Box.Y <= Mouse.Y And Mouse.Y <= Box.Y + Box.Height Then
                 If MousePressed Then
                     Activated = True
@@ -117,9 +121,8 @@ Public Class Form1
         End Function
     End Class
 
-    Public Sub PlaySound(ByRef Player As WMPLib.WindowsMediaPlayer, File As String, ShouldLoop As Boolean, Volume As Integer)
+    Public Sub PlaySound(ByRef Player As WMPLib.WindowsMediaPlayer, File As String, ShouldLoop As Boolean)
         Player.URL = My.Application.Info.DirectoryPath & "\Music\" & File
-        Player.settings.volume = Volume
         Player.settings.setMode("loop", ShouldLoop)
         Player.controls.play()
     End Sub
@@ -161,6 +164,117 @@ Public Class Form1
         Character.Draw(e)
     End Sub
 
+    Public Class Slider
+        Public X1 As Double
+        Public X2 As Double
+        Public Y As Double
+        Private HeadX As Double
+        Private Activated As Boolean = False
+        Public value As Integer = 100
+        Public color As Color = Color.White
+        Public Activated_color As Color = Color.FromArgb(157, 157, 157)
+        Public width As Double = 4
+        Public head_width As Double = width * 3.6
+
+        Public Name As New MyTextBox With {.LineAlign = "Center", .color = color}
+        Public NameText As String
+        Public ValueText As New MyTextBox With {.LineAlign = "Center", .color = color}
+
+        Public Sub NameSetting(Text As String, font As String, font_size As String, xpt1 As Double, ypt1 As Double)
+            NameText = Text
+            Name.font = font
+            Name.font_size = font_size
+            Name.point.X = xpt1
+            Name.point.Y = ypt1
+        End Sub
+
+        Public Sub ValueTextSetting(font As String, font_size As String, xpt1 As Double, ypt1 As Double)
+            ValueText.font = font
+            ValueText.font_size = font_size
+            ValueText.point.X = xpt1
+            ValueText.point.Y = ypt1
+        End Sub
+
+        Public Sub Setting(xpt1 As Double, xpt2 As Double, ypt12 As Double)
+            X1 = xpt1
+            X2 = xpt2
+            Y = ypt12
+        End Sub
+
+        Public Sub Draw(e As PaintEventArgs, myfont As PrivateFontCollection, ScaleRatio As Double, ByRef Player As WMPLib.WindowsMediaPlayer, Mouse As Point, MousePressed As Boolean)
+            e.Graphics.DrawLine(New Pen(color, width), New PointF(X1, Y), New PointF(X2, Y))
+            If X1 + (X2 - X1) / 100 * value - head_width / 2 <= Mouse.X And Mouse.X <= X1 + (X2 - X1) / 100 * value + head_width / 2 And Y - head_width / 2 <= Mouse.Y And Mouse.Y <= Y + head_width / 2 And MousePressed Then
+                Activated = True
+                HeadX = Mouse.X
+                If HeadX > X2 Then
+                    HeadX = X2
+                End If
+                If HeadX < X1 Then
+                    HeadX = X1
+                End If
+                value = (Mouse.X - X1) / (X2 - X1) * 100
+
+                If value > 100 Then
+                    value = 100
+                End If
+                If value < 0 Then
+                    value = 0
+                End If
+
+                e.Graphics.FillEllipse(New SolidBrush(Activated_color), New RectangleF(HeadX - head_width * 0.8 / 2, Y - head_width * 0.8 / 2, head_width * 0.8, head_width * 0.8))
+            ElseIf Activated And MousePressed Then
+                HeadX = Mouse.X
+                If HeadX > X2 Then
+                    HeadX = X2
+                End If
+                If HeadX < X1 Then
+                    HeadX = X1
+                End If
+                value = (Mouse.X - X1) / (X2 - X1) * 100
+
+                If value > 100 Then
+                    value = 100
+                End If
+                If value < 0 Then
+                    value = 0
+                End If
+                e.Graphics.FillEllipse(New SolidBrush(Activated_color), New RectangleF(HeadX - head_width * 0.8 / 2, Y - head_width * 0.8 / 2, head_width * 0.8, head_width * 0.8))
+            ElseIf X1 <= Mouse.X And Mouse.X <= X2 And Y - head_width / 2 <= Mouse.Y And Mouse.Y <= Y + head_width / 2 And MousePressed Then
+                HeadX = Mouse.X
+                If HeadX > X2 Then
+                    HeadX = X2
+                End If
+                If HeadX < X1 Then
+                    HeadX = X1
+                End If
+                value = (Mouse.X - X1) / (X2 - X1) * 100
+
+                If value > 100 Then
+                    value = 100
+                End If
+                If value < 0 Then
+                    value = 0
+                End If
+                e.Graphics.FillEllipse(New SolidBrush(Activated_color), New RectangleF(HeadX - head_width * 0.8 / 2, Y - head_width * 0.8 / 2, head_width * 0.8, head_width * 0.8))
+            ElseIf Activated And MousePressed = False Then
+                Player.settings.volume = value
+                Player.settings.setMode("loop", False)
+                Player.URL = My.Application.Info.DirectoryPath & "\Music\Click.wav"
+
+
+
+                e.Graphics.FillEllipse(New SolidBrush(color), New RectangleF(X1 + (X2 - X1) / 100 * value - head_width / 2, Y - head_width / 2, head_width, head_width))
+                Activated = False
+            Else
+                e.Graphics.FillEllipse(New SolidBrush(color), New RectangleF(X1 + (X2 - X1) / 100 * value - head_width / 2, Y - head_width / 2, head_width, head_width))
+                Activated = False
+            End If
+
+            Name.Draw(NameText, e, myfont, ScaleRatio)
+            ValueText.Draw(CStr(value), e, myfont, ScaleRatio)
+        End Sub
+    End Class
+
     '快速調整設定區
     Dim State As String = "Start"
 
@@ -196,9 +310,9 @@ Public Class Form1
     Dim MousePressed As Boolean = False
 
     '音樂初始化
-    Dim Volume As Integer = 100
     Dim BGM As New WMPLib.WindowsMediaPlayer
     Dim SoundEffect As New WMPLib.WindowsMediaPlayer
+    Dim Ding As New WMPLib.WindowsMediaPlayer
 
     'DebugPanel 初始化
     Dim DebugPanelOn As Boolean = DefaultDebugPanelOn
@@ -250,6 +364,12 @@ Public Class Form1
     Dim HowToPlay1_MapHeight As Integer = 6
     Dim Sky As New MyPictureBox With {.Image = My.Resources.HowToPlay.Sky}
     Dim DemoCharacter As New MyPictureBox With {.Image = My.Resources.Game.Character}
+
+    'Setting 初始化
+    Dim SettingText As New MyTextBox With {.font = "Cubic11", .font_size = 30.9, .color = Color.White}
+    Dim MusicSlider As New Slider
+    Dim SoundEffectSlider As New Slider
+    Dim DoneSettingButton As New MyButton With {.Image = My.Resources.Setting.DoneSetting, .PressedImage = My.Resources.Setting.DoneSetting_Activated}
 
     Private Sub Form1_Paint(sender As Object, e As PaintEventArgs) Handles MyBase.Paint
         If BGisOn Then
@@ -321,7 +441,7 @@ Public Class Form1
                 GameSubLogo.opacity -= OpeningDimSpeed
                 If (Now.Ticks() - OpeningStartTime) / 10000 >= OpeningGapSpeed Then
                     State = "Menu"
-                    PlaySound(BGM, "MenuBGM.wav", True, Volume)
+                    PlaySound(BGM, "MenuBGM.wav", True)
                 End If
 
                 GameLogo.point.X = MyWidth / 2
@@ -358,12 +478,12 @@ Public Class Form1
                 CopyrightInfo.Draw(Copyright, e, myfont, ScaleRatio)
 
                 StartButton.Box = New RectangleF(MyWidth - 332 * ScaleRatio, 97 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If StartButton.Draw(e, Mouse, MousePressed, SoundEffect, Volume) = 3 Then
+                If StartButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
                     State = "Start"
                 End If
 
                 HowToPlayButton.Box = New RectangleF(MyWidth - 289 * ScaleRatio, 170 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If HowToPlayButton.Draw(e, Mouse, MousePressed, SoundEffect, Volume) = 3 Then
+                If HowToPlayButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay1
                     DemoCharacter.BoxSetting(MyWidth / 2 - 268 * ScaleRatio, MyHeight / 2 + 32 * ScaleRatio, 48 * ScaleRatio, 96 * ScaleRatio)
                     BGisOn = False
@@ -371,12 +491,12 @@ Public Class Form1
                 End If
 
                 SettingButton.Box = New RectangleF(MyWidth - 258 * ScaleRatio, 245 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If SettingButton.Draw(e, Mouse, MousePressed, SoundEffect, Volume) = 3 Then
+                If SettingButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
                     State = "Setting"
                 End If
 
                 ExitButton.Box = New RectangleF(MyWidth - 238 * ScaleRatio, 319 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If ExitButton.Draw(e, Mouse, MousePressed, SoundEffect, Volume) = 3 Then
+                If ExitButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
                     State = "Exit"
                 End If
 
@@ -404,7 +524,7 @@ Public Class Form1
                 e.Graphics.FillRectangle(Brushes.Black, New RectangleF(MyWidth / 2 + 702 / 2 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth - (MyWidth / 2 + 702 / 2 * ScaleRatio), 382.811 * ScaleRatio))
 
                 NextPageButton.Box = New RectangleF(MyWidth / 2 + 175 * ScaleRatio, MyHeight / 2 + 150 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If NextPageButton.Draw(e, Mouse, MousePressed, SoundEffect, Volume) = 3 Then
+                If NextPageButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay2
                     State = "HowToPlay2"
                 End If
@@ -421,16 +541,37 @@ Public Class Form1
                 HowToPlay_Text.Draw("釋放技能", e, myfont, ScaleRatio)
 
                 NextPageButton.Box = New RectangleF(MyWidth / 2 + 175 * ScaleRatio, MyHeight / 2 + 150 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If NextPageButton.Draw(e, Mouse, MousePressed, SoundEffect, Volume) = 3 Then
+                If NextPageButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
                     BGisOn = True
                     State = "Menu"
                 End If
 
             Case "Setting"
+                SettingText.point.X = 50 * ScaleRatio
+                SettingText.point.Y = 42 * ScaleRatio
+                SettingText.Draw("設定", e, myfont, ScaleRatio)
+
+                MusicSlider.NameSetting("音量設定", "Cubic11", 16.98, 50 * ScaleRatio, 143 * ScaleRatio)
+                MusicSlider.Setting(177 * ScaleRatio, MyWidth - 105 * ScaleRatio, 143 * ScaleRatio)
+                MusicSlider.ValueTextSetting("Cubic11", 16.98, MyWidth - 88 * ScaleRatio, 143 * ScaleRatio)
+                MusicSlider.Draw(e, myfont, ScaleRatio, Ding, Mouse, MousePressed)
+                BGM.settings.volume = MusicSlider.value
+
+                SoundEffectSlider.NameSetting("音效設定", "Cubic11", 16.98, 50 * ScaleRatio, 198 * ScaleRatio)
+                SoundEffectSlider.Setting(177 * ScaleRatio, MyWidth - 105 * ScaleRatio, 198 * ScaleRatio)
+                SoundEffectSlider.ValueTextSetting("Cubic11", 16.98, MyWidth - 88 * ScaleRatio, 198 * ScaleRatio)
+                SoundEffectSlider.Draw(e, myfont, ScaleRatio, Ding, Mouse, MousePressed)
+                SoundEffect.settings.volume = SoundEffectSlider.value
+
+                DoneSettingButton.Box = New RectangleF(566 * ScaleRatio, 362 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
+                If DoneSettingButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
+                    State = "Menu"
+                End If
 
             Case "Exit"
                 WMPExit(BGM)
                 WMPExit(SoundEffect)
+                WMPExit(Ding)
                 Me.Close()
         End Select
 

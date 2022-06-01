@@ -1,0 +1,25 @@
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Release\Music\Bach Air on the G String.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Release\Music\Click.wav
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Release\Music\MenuBGM.wav
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Release\Music\開場配音.wav
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Release\MoscheBarton.exe.config
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Release\MoscheBarton.exe
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Release\MoscheBarton.pdb
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Release\MoscheBarton.xml
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.vbproj.AssemblyReference.cache
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.vbproj.SuggestedBindingRedirects.cache
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\Interop.WMPLib.dll
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.vbproj.ResolveComReference.cache
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.Form1.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.Resources.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.Fonts.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.Menu.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.HowToPlay.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.Game.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.Setting.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.vbproj.GenerateResource.cache
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.vbproj.CoreCompileInputs.cache
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.exe
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.xml
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.pdb
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.Loading.resources

@@ -15,12 +15,27 @@ Public Class Form1
         Public Align As String = "Left"
         Public LineAlign As String = "Top"
 
+        Public Function FontHeight(ByRef e As PaintEventArgs, myfont As PrivateFontCollection, ScaleRatio As Double) As Integer
+            Select Case font
+                Case "Cubic11"
+                    DrawFont = New Font(myfont.Families(1), font_size * ScaleRatio)
+                Case "Monoton"
+                    DrawFont = New Font(myfont.Families(0), font_size * ScaleRatio)
+                Case Else
+                    If font = Nothing Then
+                        DrawFont = New Font("微軟正黑體", font_size * ScaleRatio)
+                    Else
+                        DrawFont = New Font(font, font_size * ScaleRatio)
+                    End If
+            End Select
+            Return DrawFont.Height
+        End Function
         Public Sub AlignSetting(alignment As String, linealignment As String)
             Align = alignment
             LineAlign = linealignment
         End Sub
 
-        Public Sub Draw(Text As String, e As PaintEventArgs, myfont As PrivateFontCollection, ScaleRatio As Double)
+        Public Sub Draw(Text As String, ByRef e As PaintEventArgs, myfont As PrivateFontCollection, ScaleRatio As Double)
             Select Case font
                 Case "Cubic11"
                     DrawFont = New Font(myfont.Families(1), font_size * ScaleRatio)
@@ -70,7 +85,7 @@ Public Class Form1
             Box = New RectangleF(x1, y1, Height, Width)
         End Sub
 
-        Public Sub Draw(e As PaintEventArgs)
+        Public Sub Draw(ByRef e As PaintEventArgs)
             e.Graphics.DrawImage(Image, Box)
         End Sub
     End Class
@@ -81,7 +96,7 @@ Public Class Form1
         Public PressedImage As Bitmap
         Public Activated As Boolean = False
 
-        Public Function Draw(e As PaintEventArgs, Mouse As Point, MousePressed As Boolean, ByRef Player As WMPLib.WindowsMediaPlayer, Volume As Double) As Integer
+        Public Function Draw(ByRef e As PaintEventArgs, Mouse As Point, MousePressed As Boolean, ByRef Player As WMPLib.WindowsMediaPlayer, Volume As Double) As Integer
             If Box.X <= Mouse.X And Mouse.X <= Box.X + Box.Width And Box.Y <= Mouse.Y And Mouse.Y <= Box.Y + Box.Height Then
                 If MousePressed Then
                     Activated = True
@@ -132,37 +147,139 @@ Public Class Form1
         Player.close()
     End Sub
 
-    Public Sub DrawGame(e As PaintEventArgs, ByRef Map(,) As Integer, x As Double, y As Double, MapWidth As Integer, MapHeight As Integer, ScaleRatio As Double, ByRef Character As MyPictureBox)
-        Dim image As Bitmap = My.Resources.Game.Cobblestone
-        Dim Box As RectangleF
-        Dim dx As Double = 0
-        Dim dy As Double = 0
+    Public Class Game
+        Public x As Double
+        Public y As Double
+        Public width As Double
+        Public height As Double
+        Public BG As Bitmap
+        Private Const G As Double = 9.80665 / 1000 '重力加速度常數 (格/ms^2)
+        Public LastUpdate As Long '(ms)
 
-        For i = 0 To MapHeight - 1
-            For j = 0 To MapWidth - 1
-                Select Case Map(i, j)
-                    Case 1
-                        image = My.Resources.Game.Cobblestone
-                End Select
-                If Not (Map(i, j) = 0) Then
-                    Box = New RectangleF(x + dx, y + dy, 48 * ScaleRatio, 48 * ScaleRatio)
-                    e.Graphics.DrawImage(image, Box)
-                    dx += 48 * ScaleRatio
-                Else
-                    dx += 48 * ScaleRatio
-                End If
+        Private WallDetectX0 As Integer
+        Private WallDetectX08 As Integer
+        Private WallDetectY0 As Integer
+        Private WallDetectY09 As Integer
+        Private WallDetectY18 As Integer
+
+        Public Map As Integer(,)
+        Public Map_Width As Integer
+        Public Map_Height As Integer
+        Private Map_Texture As Bitmap() = {My.Resources.Game.Cobblestone, My.Resources.Game.Cobblestone}
+        Private MapDx As Double = 0
+        Private MapDy As Double = 0
+
+        Public CharacterBox As RectangleF
+        Public CharacterX As Double = 5.1
+        Public CharacterY As Double = 1
+        Private Character_Speed As Double = 0.1
+        Private CharacterYv As Double = 0
+
+
+        Public Character_Jump As Boolean = False
+        Public Const Character_Jump_Speed As Double = 0.08 '(格/ms)
+        Public Jump_Delay As Integer = 250 '(ms)
+        Public Last_Jump As Long = 0
+
+        Public Sub BoxSetting(ptx As Double, pty As Double, ptwidth As Double, ptheight As Double)
+            x = ptx
+            y = pty
+            width = ptwidth
+            height = ptheight
+        End Sub
+
+        Public Sub Detect()
+            WallDetectX0 = Math.Floor(CharacterX)
+            WallDetectX08 = Math.Floor(CharacterX + 0.8)
+            WallDetectY0 = Math.Floor(Map_Height - CharacterY)
+            WallDetectY09 = Math.Floor(Map_Height - (CharacterY + 0.9))
+            WallDetectY18 = Math.Floor(Map_Height - (CharacterY + 1.8))
+
+            If WallDetectX0 < 0 Then
+                WallDetectX0 = 0
+            ElseIf WallDetectX0 > Map_Width - 1 Then
+                WallDetectX0 = Map_Width - 1
+            End If
+
+            If WallDetectX08 < 0 Then
+                WallDetectX08 = 0
+            ElseIf WallDetectX08 > Map_Width - 1 Then
+                WallDetectX08 = Map_Width - 1
+            End If
+
+            If WallDetectY0 < 0 Then
+                WallDetectY0 = 0
+            ElseIf WallDetectY0 > Map_Height - 1 Then
+                WallDetectY0 = Map_Height - 1
+            End If
+
+            If WallDetectY09 < 0 Then
+                WallDetectY09 = 0
+            ElseIf WallDetectY09 > Map_Height - 1 Then
+                WallDetectY09 = Map_Height - 1
+            End If
+
+            If WallDetectY18 < 0 Then
+                WallDetectY18 = 0
+            ElseIf WallDetectY18 > Map_Height - 1 Then
+                WallDetectY18 = Map_Height - 1
+            End If
+        End Sub
+
+        Public Sub DrawGame(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef Keyboard() As Boolean)
+            '畫背景
+            e.Graphics.DrawImage(BG, New RectangleF(x + MapDx * ScaleRatio, y + MapDy * ScaleRatio, width, height))
+
+            '畫地圖
+            For i = 0 To Map_Height - 1
+                For j = 0 To Map_Width - 1
+                    If Map(i, j) > 0 Then
+                        e.Graphics.DrawImage(Map_Texture(Map(i, j)), New RectangleF(x + MapDx * ScaleRatio, y + MapDy * ScaleRatio, 48 * ScaleRatio, 48 * ScaleRatio))
+                    End If
+
+                    MapDx += 48
+                Next
+                MapDx = 0
+                MapDy += 48
             Next
-            dy += 48 * ScaleRatio
-            dx = 0
-        Next
+            MapDx = 0
+            MapDy = 0
 
-        If Keyboard(Keys.A) Then
-            Character.Box.X -= 1 * ScaleRatio
-        ElseIf Keyboard(Keys.D) Then
-            Character.Box.X += 1 * ScaleRatio
-        End If
-        Character.Draw(e)
-    End Sub
+            '畫角色
+            If Keyboard(Keys.D) Then
+                CharacterX += Character_Speed
+            End If
+            If Keyboard(Keys.A) Then
+                CharacterX -= Character_Speed
+            End If
+            If Keyboard(Keys.S) Then
+                CharacterY -= Character_Speed
+            End If
+            If Keyboard(Keys.Space) And Character_Jump = False And Now.Ticks() / 10000 - Last_Jump > Jump_Delay Then
+                CharacterY += Character_Speed
+                CharacterYv = Character_Jump_Speed
+                Character_Jump = True
+                Last_Jump = Now.Ticks() / 10000
+            End If
+
+            CharacterYv -= G
+            CharacterY += CharacterYv * (Now.Ticks() / 10000 - LastUpdate)
+
+            Detect()
+            If (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY0, WallDetectX08) <> 0) And Math.Floor(CharacterY) <= CharacterY And CharacterY < Math.Floor(CharacterY) + 1 Then
+                CharacterYv = 0
+                CharacterY = Math.Floor(CharacterY) + 1
+                Character_Jump = False
+            End If
+
+
+
+            CharacterBox = New RectangleF(x + CharacterX * 48 * ScaleRatio, y + (Map_Height - CharacterY) * 48 * ScaleRatio - 86.4 * ScaleRatio, 38.4 * ScaleRatio, 86.4 * ScaleRatio)
+
+            e.Graphics.DrawImage(My.Resources.Game.Character, CharacterBox)
+            LastUpdate = Now.Ticks() / 10000
+        End Sub
+    End Class
 
     Public Class Slider
         Public X1 As Double
@@ -201,7 +318,7 @@ Public Class Form1
             Y = ypt12
         End Sub
 
-        Public Sub Draw(e As PaintEventArgs, myfont As PrivateFontCollection, ScaleRatio As Double, ByRef Player As WMPLib.WindowsMediaPlayer, Mouse As Point, MousePressed As Boolean)
+        Public Sub Draw(ByRef e As PaintEventArgs, myfont As PrivateFontCollection, ScaleRatio As Double, ByRef Player As WMPLib.WindowsMediaPlayer, Mouse As Point, MousePressed As Boolean)
             e.Graphics.DrawLine(New Pen(color, width), New PointF(X1, Y), New PointF(X2, Y))
             If X1 + (X2 - X1) / 100 * value - head_width / 2 <= Mouse.X And Mouse.X <= X1 + (X2 - X1) / 100 * value + head_width / 2 And Y - head_width / 2 <= Mouse.Y And Mouse.Y <= Y + head_width / 2 And MousePressed Then
                 Activated = True
@@ -276,9 +393,9 @@ Public Class Form1
     End Class
 
     '快速調整設定區
-    Dim State As String = "Start"
+    Dim State As String = "HowToPlay1"
 
-    Const Version As String = "Insider Preview 1.0"
+    Const Version As String = "Insider Preview 1.1"
     Const Copyright As String = "III Studio 製作"
 
     Const DefaultWidth As Integer = 800 '預設的寬度
@@ -316,7 +433,7 @@ Public Class Form1
 
     'DebugPanel 初始化
     Dim DebugPanelOn As Boolean = DefaultDebugPanelOn
-    Dim DebugInfo As New MyTextBox With {.font = "Consolas", .font_size = 12, .color = Color.Yellow}
+    Dim DebugInfo As New MyTextBox With {.font = "Consolas", .font_size = 10, .color = Color.Yellow}
     Dim lastUpdate As Long
     Dim FPS As Double
     Dim Frametime As Double
@@ -332,6 +449,12 @@ Public Class Form1
 
     '開場動畫計時器
     Dim OpeningStartTime As Long
+
+    'Loading 初始化
+    Dim LoadingIndex As Integer = 0
+    Dim LoadingShow As Boolean = False
+    Dim LoadingSeq() As Bitmap = {My.Resources.Loading._0, My.Resources.Loading._1, My.Resources.Loading._2, My.Resources.Loading._3, My.Resources.Loading._4, My.Resources.Loading._5, My.Resources.Loading._6, My.Resources.Loading._7, My.Resources.Loading._8, My.Resources.Loading._9, My.Resources.Loading._10, My.Resources.Loading._11, My.Resources.Loading._12, My.Resources.Loading._13, My.Resources.Loading._14, My.Resources.Loading._15, My.Resources.Loading._16, My.Resources.Loading._17, My.Resources.Loading._18, My.Resources.Loading._19, My.Resources.Loading._20, My.Resources.Loading._21, My.Resources.Loading._22, My.Resources.Loading._23, My.Resources.Loading._24, My.Resources.Loading._25, My.Resources.Loading._26, My.Resources.Loading._27, My.Resources.Loading._28, My.Resources.Loading._29}
+    Dim Loading As New MyPictureBox
 
     'StudioLogo 初始化
     Dim StudioLogo As New MyTextBox With {.font = "Monoton", .font_size = 50, .color = Color.White, .opacity = 0, .Align = "Center", .LineAlign = "Center"}
@@ -354,22 +477,32 @@ Public Class Form1
     Dim NextPageButton As New MyButton With {.Image = My.Resources.HowToPlay.NextPage, .PressedImage = My.Resources.HowToPlay.NextPage_Pressed}
     Dim HowToPlay_Text As New MyTextBox With {.font = "Cubic11", .font_size = 21.5, .color = Color.Black}
     Dim HowToPlay_Img As New MyPictureBox With {.Image = My.Resources.HowToPlay.HowToPlay1}
-    Dim HowToPlay1_Map(,) As Integer = {{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
-                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
-                                        {1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1},
-                                        {1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1},
-                                        {1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1},
-                                        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
-    Dim HowToPlay1_MapWidth As Integer = 15
-    Dim HowToPlay1_MapHeight As Integer = 6
-    Dim Sky As New MyPictureBox With {.Image = My.Resources.HowToPlay.Sky}
-    Dim DemoCharacter As New MyPictureBox With {.Image = My.Resources.Game.Character}
+    Dim DemoGame As New Game With {.Map = {{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                           {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                           {1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1},
+                                           {1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1},
+                                           {1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1},
+                                           {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}},
+                                   .Map_Width = 14, .Map_Height = 6, .BG = My.Resources.HowToPlay.Sky}
 
     'Setting 初始化
     Dim SettingText As New MyTextBox With {.font = "Cubic11", .font_size = 30.9, .color = Color.White}
     Dim MusicSlider As New Slider
     Dim SoundEffectSlider As New Slider
     Dim DoneSettingButton As New MyButton With {.Image = My.Resources.Setting.DoneSetting, .PressedImage = My.Resources.Setting.DoneSetting_Activated}
+
+    'Intro 初始化
+    Dim IntroStartTime As Long
+    Dim IntroText() As String = {"我曾踏過千山萬水", "行過無數市鎮", "與牧人一起唱著山歌", "和漁夫共同經歷風暴", "只為求得那", "不存於人世的音樂", "那是我年輕時的故事了", "呵呵，別看我現在這糟老頭樣", "我年輕時可是才華洋溢的提琴手呢！", "孩子們", "靠過來點", "今天老莫爺爺我啊", "要說的是我年輕時最不可思議的事", "那就是跟使用邪惡音樂", "攻擊村莊的魔王死戰", "嘿！誰說英雄一定要拿劍的", "坐好坐好，要開始囉！", "嗯咳！", "那，是一個陰暗的日子。。。。。"}
+    Dim IntroTimeCodeStart As Integer() = {12000, 15040, 16704, 19104, 21696, 23392, 26656, 28736, 31360, 34592, 35488, 36864, 38784, 42432, 44150, 46478, 49166, 51086, 52270}
+    Dim IntroTimeCodeEnd As Integer() = {14816, 16640, 18912, 21632, 23232, 26112, 28608, 31104, 34016, 35296, 36512, 38432, 41920, 44088, 45710, 48878, 50510, 51534, 56750}
+    Dim TextSpeed As Double = 15
+    Dim TextIndex As Integer = 0
+    Dim TextAnimationIndex As Integer = 0
+    Dim ShowText As New MyTextBox With {.font = "Cubic11", .font_size = 30, .color = Color.White, .LineAlign = "Center"}
+    Dim NowShowText As String
+    Dim DimScreen As Integer = 0
+
 
     Private Sub Form1_Paint(sender As Object, e As PaintEventArgs) Handles MyBase.Paint
         If BGisOn Then
@@ -386,6 +519,17 @@ Public Class Form1
             BGBrush.InterpolationColors = BGColorBlend '更新背景成多色漸層
             BGBrush.RotateTransform(33 + BGAnimation) '旋轉背景
             e.Graphics.FillRectangle(BGBrush, New RectangleF(0, 0, MyWidth, MyHeight)) '繪製背景
+        End If
+
+        If LoadingShow Then
+            LoadingIndex += 1
+            If LoadingIndex >= LoadingSeq.Length() - 1 Then
+                LoadingIndex = 0
+            End If
+
+            Loading.BoxSetting(MyWidth - 50, MyHeight - 50, 30, 30)
+            Loading.Image = LoadingSeq(LoadingIndex)
+            Loading.Draw(e)
         End If
 
         Select Case State
@@ -479,13 +623,17 @@ Public Class Form1
 
                 StartButton.Box = New RectangleF(MyWidth - 332 * ScaleRatio, 97 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
                 If StartButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
-                    State = "Start"
+                    State = "Intro"
+                    IntroStartTime = Now.Ticks() / 10000
+                    TextIndex = 0
+                    TextAnimationIndex = 0
+                    DimScreen = 0
+                    BGM.controls.stop()
                 End If
 
                 HowToPlayButton.Box = New RectangleF(MyWidth - 289 * ScaleRatio, 170 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
                 If HowToPlayButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay1
-                    DemoCharacter.BoxSetting(MyWidth / 2 - 268 * ScaleRatio, MyHeight / 2 + 32 * ScaleRatio, 48 * ScaleRatio, 96 * ScaleRatio)
                     BGisOn = False
                     State = "HowToPlay1"
                 End If
@@ -502,12 +650,10 @@ Public Class Form1
 
 
             Case "HowToPlay1"
-                Sky.BoxSetting(MyWidth / 2 - 684 * ScaleRatio / 2, MyHeight / 2 - 362 * ScaleRatio / 2, 684 * ScaleRatio, 362 * ScaleRatio)
-                Sky.Draw(e)
 
-                DrawGame(e, HowToPlay1_Map, MyWidth / 2 - 340 * ScaleRatio, MyHeight / 2 - 112 * ScaleRatio, HowToPlay1_MapWidth, HowToPlay1_MapHeight, ScaleRatio, DemoCharacter)
-
-                DemoCharacter.Draw(e)
+                DemoGame.BoxSetting(MyWidth / 2 - 335 * ScaleRatio, MyHeight / 2 - 112 * ScaleRatio, 670 * ScaleRatio, 287 * ScaleRatio)
+                DemoGame.LastUpdate = Now.Ticks() / 10000
+                DemoGame.DrawGame(e, ScaleRatio, Keyboard)
 
                 HowToPlay_Img.BoxSetting(MyWidth / 2 - 702 / 2 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, 702 * ScaleRatio, 382.811 * ScaleRatio)
                 HowToPlay_Img.Draw(e)
@@ -551,7 +697,7 @@ Public Class Form1
                 SettingText.point.Y = 42 * ScaleRatio
                 SettingText.Draw("設定", e, myfont, ScaleRatio)
 
-                MusicSlider.NameSetting("音量設定", "Cubic11", 16.98, 50 * ScaleRatio, 143 * ScaleRatio)
+                MusicSlider.NameSetting("音樂設定", "Cubic11", 16.98, 50 * ScaleRatio, 143 * ScaleRatio)
                 MusicSlider.Setting(177 * ScaleRatio, MyWidth - 105 * ScaleRatio, 143 * ScaleRatio)
                 MusicSlider.ValueTextSetting("Cubic11", 16.98, MyWidth - 88 * ScaleRatio, 143 * ScaleRatio)
                 MusicSlider.Draw(e, myfont, ScaleRatio, Ding, Mouse, MousePressed)
@@ -568,6 +714,52 @@ Public Class Form1
                     State = "Menu"
                 End If
 
+            Case "Intro"
+                Select Case Now.Ticks() / 10000 - IntroStartTime
+                    Case 0 To 3000
+                        LoadingShow = True
+
+                    Case 3000 To 3250
+                        PlaySound(BGM, "Bach Air on the G String.mp3", False)
+                        LoadingShow = False
+
+                    Case IntroTimeCodeStart(0) To IntroTimeCodeStart(0) + 250
+                        PlaySound(SoundEffect, "開場配音.wav", False)
+
+                    Case IntroTimeCodeEnd(IntroText.Length() - 1) To IntroTimeCodeEnd(IntroText.Length() - 1) + 2000
+
+                        If (Now.Ticks / 10000 - IntroStartTime) Mod TextSpeed < 30 Then
+                            DimScreen += 5
+                            If DimScreen >= 255 Then
+                                DimScreen = 255
+                            End If
+                        End If
+                    Case IntroTimeCodeEnd(IntroText.Length() - 1) + 2000 To IntroTimeCodeEnd(IntroText.Length() - 1) + 2000 + 2000
+                        State = "Menu"
+                        PlaySound(BGM, "MenuBGM.wav", True)
+
+                    Case IntroTimeCodeStart(TextIndex) To IntroTimeCodeEnd(TextIndex)
+                        If TextAnimationIndex < IntroText(TextIndex).Length Then
+                            If (Now.Ticks / 10000 - IntroStartTime) Mod TextSpeed < 30 Then
+                                NowShowText += IntroText(TextIndex)(TextAnimationIndex)
+                                TextAnimationIndex += 1
+                            End If
+                        ElseIf Now.Ticks() / 10000 - IntroStartTime >= IntroTimeCodeEnd(TextIndex) - 30 Then
+                            TextIndex += 1
+                            If TextIndex >= IntroText.Length() - 1 Then
+                                TextIndex = IntroText.Length() - 1
+                            End If
+                        End If
+
+                    Case Else
+                        TextAnimationIndex = 0
+                        NowShowText = ""
+                End Select
+                ShowText.point.X = MyWidth / 2 - IntroText(TextIndex).Length() / 2 * ShowText.FontHeight(e, myfont, ScaleRatio) + 1.15 * IntroText(TextIndex).Length() * ScaleRatio
+                ShowText.point.Y = MyHeight / 2
+                ShowText.Draw(NowShowText, e, myfont, ScaleRatio)
+                e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(DimScreen, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
+
             Case "Exit"
                 WMPExit(BGM)
                 WMPExit(SoundEffect)
@@ -581,9 +773,12 @@ Public Class Form1
             FPS = 1 / (Frametime / 1000)
             DebugInfo.Draw("Mosche Barton " & vbNewLine &
                            Version & vbNewLine &
+                           CStr(MyWidth) & "x" & CStr(MyHeight) & vbNewLine &
+                           "Scale by " & CStr(ScaleRatio) & vbNewLine &
                            "FPS " & CStr(Math.Round(FPS, 2)) & vbNewLine &
                            "Frametime " & CStr(Math.Round(Frametime, 2)) & vbNewLine &
-                           "State " & State,
+                           "State " & State & vbNewLine &
+                           "Character (" & CStr(Math.Round(DemoGame.CharacterX, 2)) & ", " & CStr(Math.Round(DemoGame.CharacterY, 2)) & ")",
                            e, myfont, ScaleRatio)
 
             e.Graphics.DrawLine(New Pen(Color.Yellow), New PointF(0, MyHeight / 2), New PointF(MyWidth, MyHeight / 2))

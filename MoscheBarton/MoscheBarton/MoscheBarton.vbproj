@@ -115,6 +115,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Game.resx</DependentUpon>
     </Compile>
+    <Compile Include="Loading.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Loading.resx</DependentUpon>
+    </Compile>
     <Compile Include="Setting.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -150,6 +155,11 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Game.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Loading.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Loading.Designer.vb</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Setting.resx">
       <CustomToolNamespace>My.Resources</CustomToolNamespace>

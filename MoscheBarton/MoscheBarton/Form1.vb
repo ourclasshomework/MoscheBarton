@@ -4,299 +4,174 @@ Imports System.Runtime.InteropServices
 Imports System.Timers
 
 Public Class Form1
-    Public Class MyTextBox
-        Public font As String
-        Public font_size As Double
-        Private DrawFont As Font
-        Public color As Color
-        Public opacity As Double = 255.0
-        Public point As PointF
-        Private format As New StringFormat
-        Public Align As String = "Left"
-        Public LineAlign As String = "Top"
+    Public Class MyTextBox '自定義文字方塊
+        Public font As String '選擇要繪製的字體
+        Public font_size As Double '字體大小
+        Private DrawFont As Font '要繪製文字的字體
+        Public color As Color '顏色
+        Public opacity As Double = 255.0 '透明度，預設是255.0 (完全不透明)
+        Public point As PointF '繪製的左上角座標
+        Private format As New StringFormat '字體集
+        Public Align As String = "Left" '垂直對齊
+        Public LineAlign As String = "Top" '水平對齊
 
-        Public Function FontHeight(ByRef e As PaintEventArgs, myfont As PrivateFontCollection, ScaleRatio As Double) As Integer
+        '查詢字體高度
+        Public Function FontHeight(ByRef e As PaintEventArgs, ByRef myfont As PrivateFontCollection, ScaleRatio As Double) As Integer
             Select Case font
-                Case "Cubic11"
+                Case "Cubic11" '如果選擇 "Cubic11" 就把 DrawFont 設成 Cubic
                     DrawFont = New Font(myfont.Families(1), font_size * ScaleRatio)
-                Case "Monoton"
+                Case "Monoton" '如果選擇 "Monoton" 就把 DrawFont 設成 Monoton
                     DrawFont = New Font(myfont.Families(0), font_size * ScaleRatio)
-                Case Else
+                Case Else '如果未設定就設定成 微軟正黑體
                     If font = Nothing Then
                         DrawFont = New Font("微軟正黑體", font_size * ScaleRatio)
-                    Else
+                    Else '如果選擇 其他 就把 DrawFont 設成 其他
                         DrawFont = New Font(font, font_size * ScaleRatio)
                     End If
             End Select
-            Return DrawFont.Height
+            Return DrawFont.Height '回傳自體高度
         End Function
+
+        '設定對齊
         Public Sub AlignSetting(alignment As String, linealignment As String)
             Align = alignment
             LineAlign = linealignment
         End Sub
 
+        '繪製文字
         Public Sub Draw(Text As String, ByRef e As PaintEventArgs, myfont As PrivateFontCollection, ScaleRatio As Double)
             Select Case font
-                Case "Cubic11"
+                Case "Cubic11" '如果選擇 "Cubic11" 就把 DrawFont 設成 Cubic
                     DrawFont = New Font(myfont.Families(1), font_size * ScaleRatio)
-                Case "Monoton"
+                Case "Monoton" '如果選擇 "Monoton" 就把 DrawFont 設成 Monoton
                     DrawFont = New Font(myfont.Families(0), font_size * ScaleRatio)
-                Case Else
+                Case Else '如果未設定就設定成 微軟正黑體
                     If font = Nothing Then
                         DrawFont = New Font("微軟正黑體", font_size * ScaleRatio)
-                    Else
+                    Else '如果選擇 其他 就把 DrawFont 設成 其他
                         DrawFont = New Font(font, font_size * ScaleRatio)
                     End If
             End Select
 
-            Select Case Align
-                Case "Left"
+            Select Case Align '垂直對齊
+                Case "Left" '左
                     format.Alignment = StringAlignment.Near
-                Case "Center"
+                Case "Center" '中
                     format.Alignment = StringAlignment.Center
-                Case "Right"
+                Case "Right" '右
                     format.Alignment = StringAlignment.Far
             End Select
 
-            Select Case LineAlign
-                Case "Top"
+            Select Case LineAlign '水平對齊
+                Case "Top" '上
                     format.LineAlignment = StringAlignment.Near
-                Case "Center"
+                Case "Center" '中
                     format.LineAlignment = StringAlignment.Center
-                Case "Bottom"
+                Case "Bottom" '下
                     format.LineAlignment = StringAlignment.Far
             End Select
 
-            If opacity >= 255.0 Then
+            If opacity > 255.0 Then '如果 透明度 > 255.0 就把 透明度 設成 255.0
                 opacity = 255.0
-            ElseIf opacity <= 0.0 Then
+            ElseIf opacity < 0.0 Then '如果 透明度 < 0.0 就把 透明度 設成 0.0
                 opacity = 0.0
             End If
 
-            e.Graphics.DrawString(Text, DrawFont, New SolidBrush(Color.FromArgb(opacity, color)), point, format)
+            e.Graphics.DrawString(Text, DrawFont, New SolidBrush(Color.FromArgb(opacity, color)), point, format) '繪製文字
         End Sub
     End Class
 
     Public Class MyPictureBox
-        Public Box As RectangleF
-        Public Image As Bitmap
+        Public Box As RectangleF '圖片的繪製框
+        Public Image As Bitmap '圖片
 
-        Public Sub BoxSetting(x1 As Single, y1 As Single, Height As Single, Width As Single)
+        Public Sub BoxSetting(x1 As Single, y1 As Single, Height As Single, Width As Single) '繪製框設定
             Box = New RectangleF(x1, y1, Height, Width)
         End Sub
 
-        Public Sub Draw(ByRef e As PaintEventArgs)
+        Public Sub Draw(ByRef e As PaintEventArgs) '在繪製框內畫圖片
             e.Graphics.DrawImage(Image, Box)
         End Sub
     End Class
 
     Public Class MyButton
-        Public Box As RectangleF
-        Public Image As Bitmap
-        Public PressedImage As Bitmap
-        Public Activated As Boolean = False
+        Public Box As RectangleF '按鈕框
+        Public Image As Bitmap '按鈕圖片
+        Public PressedImage As Bitmap '壓下的按鈕的圖片
+        Public Activated As Boolean = False '是否被按下過，預設是 False
 
+        '繪製按鈕
         Public Function Draw(ByRef e As PaintEventArgs, Mouse As Point, MousePressed As Boolean, ByRef Player As WMPLib.WindowsMediaPlayer, Volume As Double) As Integer
-            If Box.X <= Mouse.X And Mouse.X <= Box.X + Box.Width And Box.Y <= Mouse.Y And Mouse.Y <= Box.Y + Box.Height Then
-                If MousePressed Then
-                    Activated = True
-                    e.Graphics.DrawImage(PressedImage, Box)
-                    Return 1
-                Else
-                    e.Graphics.DrawImage(Image, Box)
-                    If Activated Then
-                        Activated = False
+            If Box.X <= Mouse.X And Mouse.X <= Box.X + Box.Width And Box.Y <= Mouse.Y And Mouse.Y <= Box.Y + Box.Height Then '游標在按鈕上
+                If MousePressed Then '滑鼠按下
+                    Activated = True '曾按過 = True
+                    e.Graphics.DrawImage(PressedImage, Box) '繪製已按過的圖片
+                    Return 1 '回傳 「按下，但還沒放開」
+                Else '滑鼠未按
+                    e.Graphics.DrawImage(Image, Box) '繪製未按過的圖片
+                    If Activated Then '如果曾按過
+                        Activated = False '曾按過 = False
+                        '播放音效
                         Player.URL = My.Application.Info.DirectoryPath & "\Music\Click.wav"
                         Player.settings.volume = Volume
                         Player.controls.play()
-                        Return 3
+                        Return 3 '回傳 「放開，已按過，需觸發事件」
                     Else
-                        Return 0
+                        Return 0 '回傳 「放開，未曾按過」
                     End If
                 End If
             Else
-                If MousePressed Then
-                    If Activated Then
-                        Activated = True
-                        e.Graphics.DrawImage(PressedImage, Box)
-                        Return 2
+                If MousePressed Then '滑鼠按下
+                    If Activated Then '曾按過
+                        Activated = True '按過 = True
+                        e.Graphics.DrawImage(PressedImage, Box) '繪製已按過的圖片
+                        Return 2 '回傳「不再按鈕上，但曾按過，且未放開」
                     Else
-                        e.Graphics.DrawImage(Image, Box)
-                        Return 0
+                        e.Graphics.DrawImage(Image, Box) '繪製放開的圖片
+                        Return 0 '回傳 「放開，未曾按過」
                     End If
                 Else
-                    Activated = False
-                    e.Graphics.DrawImage(Image, Box)
-                    Return 0
+                    Activated = False '曾按過 = False
+                    e.Graphics.DrawImage(Image, Box) '繪製放開的圖片
+                    Return 0 '回傳 「放開，未曾按過」
                 End If
             End If
 
             e.Graphics.DrawImage(Image, Box)
-            Return 0
+            Return 0 '回傳 「放開，未曾按過」
         End Function
     End Class
 
     Public Sub PlaySound(ByRef Player As WMPLib.WindowsMediaPlayer, File As String, ShouldLoop As Boolean)
-        Player.URL = My.Application.Info.DirectoryPath & "\Music\" & File
-        Player.settings.setMode("loop", ShouldLoop)
-        Player.controls.play()
+        Player.URL = My.Application.Info.DirectoryPath & "\Music\" & File '選擇路徑
+        Player.settings.setMode("loop", ShouldLoop) '設定是否循環
+        Player.controls.play() '播放
     End Sub
 
     Public Sub WMPExit(ByRef Player As WMPLib.WindowsMediaPlayer)
-        Player.controls.stop()
-        Player.close()
+        Player.controls.stop() '停止
+        Player.close() '結束
     End Sub
 
-    Public Class Game
-        Public x As Double
-        Public y As Double
-        Public width As Double
-        Public height As Double
-        Public BG As Bitmap
-        Private Const G As Double = 9.80665 / 1000 '重力加速度常數 (格/ms^2)
-        Public LastUpdate As Long '(ms)
-
-        Private WallDetectX0 As Integer
-        Private WallDetectX08 As Integer
-        Private WallDetectY0 As Integer
-        Private WallDetectY09 As Integer
-        Private WallDetectY18 As Integer
-
-        Public Map As Integer(,)
-        Public Map_Width As Integer
-        Public Map_Height As Integer
-        Private Map_Texture As Bitmap() = {My.Resources.Game.Cobblestone, My.Resources.Game.Cobblestone}
-        Private MapDx As Double = 0
-        Private MapDy As Double = 0
-
-        Public CharacterBox As RectangleF
-        Public CharacterX As Double = 5.1
-        Public CharacterY As Double = 1
-        Private Character_Speed As Double = 0.1
-        Private CharacterYv As Double = 0
-
-
-        Public Character_Jump As Boolean = False
-        Public Const Character_Jump_Speed As Double = 0.08 '(格/ms)
-        Public Jump_Delay As Integer = 250 '(ms)
-        Public Last_Jump As Long = 0
-
-        Public Sub BoxSetting(ptx As Double, pty As Double, ptwidth As Double, ptheight As Double)
-            x = ptx
-            y = pty
-            width = ptwidth
-            height = ptheight
-        End Sub
-
-        Public Sub Detect()
-            WallDetectX0 = Math.Floor(CharacterX)
-            WallDetectX08 = Math.Floor(CharacterX + 0.8)
-            WallDetectY0 = Math.Floor(Map_Height - CharacterY)
-            WallDetectY09 = Math.Floor(Map_Height - (CharacterY + 0.9))
-            WallDetectY18 = Math.Floor(Map_Height - (CharacterY + 1.8))
-
-            If WallDetectX0 < 0 Then
-                WallDetectX0 = 0
-            ElseIf WallDetectX0 > Map_Width - 1 Then
-                WallDetectX0 = Map_Width - 1
-            End If
-
-            If WallDetectX08 < 0 Then
-                WallDetectX08 = 0
-            ElseIf WallDetectX08 > Map_Width - 1 Then
-                WallDetectX08 = Map_Width - 1
-            End If
-
-            If WallDetectY0 < 0 Then
-                WallDetectY0 = 0
-            ElseIf WallDetectY0 > Map_Height - 1 Then
-                WallDetectY0 = Map_Height - 1
-            End If
-
-            If WallDetectY09 < 0 Then
-                WallDetectY09 = 0
-            ElseIf WallDetectY09 > Map_Height - 1 Then
-                WallDetectY09 = Map_Height - 1
-            End If
-
-            If WallDetectY18 < 0 Then
-                WallDetectY18 = 0
-            ElseIf WallDetectY18 > Map_Height - 1 Then
-                WallDetectY18 = Map_Height - 1
-            End If
-        End Sub
-
-        Public Sub DrawGame(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef Keyboard() As Boolean)
-            '畫背景
-            e.Graphics.DrawImage(BG, New RectangleF(x + MapDx * ScaleRatio, y + MapDy * ScaleRatio, width, height))
-
-            '畫地圖
-            For i = 0 To Map_Height - 1
-                For j = 0 To Map_Width - 1
-                    If Map(i, j) > 0 Then
-                        e.Graphics.DrawImage(Map_Texture(Map(i, j)), New RectangleF(x + MapDx * ScaleRatio, y + MapDy * ScaleRatio, 48 * ScaleRatio, 48 * ScaleRatio))
-                    End If
-
-                    MapDx += 48
-                Next
-                MapDx = 0
-                MapDy += 48
-            Next
-            MapDx = 0
-            MapDy = 0
-
-            '畫角色
-            If Keyboard(Keys.D) Then
-                CharacterX += Character_Speed
-            End If
-            If Keyboard(Keys.A) Then
-                CharacterX -= Character_Speed
-            End If
-            If Keyboard(Keys.S) Then
-                CharacterY -= Character_Speed
-            End If
-            If Keyboard(Keys.Space) And Character_Jump = False And Now.Ticks() / 10000 - Last_Jump > Jump_Delay Then
-                CharacterY += Character_Speed
-                CharacterYv = Character_Jump_Speed
-                Character_Jump = True
-                Last_Jump = Now.Ticks() / 10000
-            End If
-
-            CharacterYv -= G
-            CharacterY += CharacterYv * (Now.Ticks() / 10000 - LastUpdate)
-
-            Detect()
-            If (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY0, WallDetectX08) <> 0) And Math.Floor(CharacterY) <= CharacterY And CharacterY < Math.Floor(CharacterY) + 1 Then
-                CharacterYv = 0
-                CharacterY = Math.Floor(CharacterY) + 1
-                Character_Jump = False
-            End If
-
-
-
-            CharacterBox = New RectangleF(x + CharacterX * 48 * ScaleRatio, y + (Map_Height - CharacterY) * 48 * ScaleRatio - 86.4 * ScaleRatio, 38.4 * ScaleRatio, 86.4 * ScaleRatio)
-
-            e.Graphics.DrawImage(My.Resources.Game.Character, CharacterBox)
-            LastUpdate = Now.Ticks() / 10000
-        End Sub
-    End Class
-
     Public Class Slider
-        Public X1 As Double
-        Public X2 As Double
-        Public Y As Double
-        Private HeadX As Double
-        Private Activated As Boolean = False
-        Public value As Integer = 100
-        Public color As Color = Color.White
-        Public Activated_color As Color = Color.FromArgb(157, 157, 157)
-        Public width As Double = 4
-        Public head_width As Double = width * 3.6
+        Public X1 As Double '左邊點的X座標
+        Public X2 As Double '右邊點的X座標
+        Public Y As Double '左右邊點的Y座標
+        Private HeadX As Double '控制頭的X座標
+        Private Activated As Boolean = False '是否按下控制頭
+        Public value As Integer = 100 '值
+        Public color As Color = Color.White '顏色
+        Public Activated_color As Color = Color.FromArgb(157, 157, 157) '控制頭按下的顏色
+        Public width As Double = 4 '線寬
+        Public head_width As Double = width * 3.6 '頭寬
 
+        '控制桿的文字
         Public Name As New MyTextBox With {.LineAlign = "Center", .color = color}
         Public NameText As String
+        '數值的文字
         Public ValueText As New MyTextBox With {.LineAlign = "Center", .color = color}
 
+        '控制桿的文字設定
         Public Sub NameSetting(Text As String, font As String, font_size As String, xpt1 As Double, ypt1 As Double)
             NameText = Text
             Name.font = font
@@ -305,6 +180,7 @@ Public Class Form1
             Name.point.Y = ypt1
         End Sub
 
+        '數值的文字設定
         Public Sub ValueTextSetting(font As String, font_size As String, xpt1 As Double, ypt1 As Double)
             ValueText.font = font
             ValueText.font_size = font_size
@@ -312,12 +188,14 @@ Public Class Form1
             ValueText.point.Y = ypt1
         End Sub
 
+        '座標設定
         Public Sub Setting(xpt1 As Double, xpt2 As Double, ypt12 As Double)
             X1 = xpt1
             X2 = xpt2
             Y = ypt12
         End Sub
 
+        '繪製控制桿
         Public Sub Draw(ByRef e As PaintEventArgs, myfont As PrivateFontCollection, ScaleRatio As Double, ByRef Player As WMPLib.WindowsMediaPlayer, Mouse As Point, MousePressed As Boolean)
             e.Graphics.DrawLine(New Pen(color, width), New PointF(X1, Y), New PointF(X2, Y))
             If X1 + (X2 - X1) / 100 * value - head_width / 2 <= Mouse.X And Mouse.X <= X1 + (X2 - X1) / 100 * value + head_width / 2 And Y - head_width / 2 <= Mouse.Y And Mouse.Y <= Y + head_width / 2 And MousePressed Then
@@ -389,6 +267,152 @@ Public Class Form1
 
             Name.Draw(NameText, e, myfont, ScaleRatio)
             ValueText.Draw(CStr(value), e, myfont, ScaleRatio)
+        End Sub
+    End Class
+
+    Public Class Game
+        Public x As Double
+        Public y As Double
+        Public width As Double
+        Public height As Double
+        Public BG As Bitmap
+        Private Const G As Double = 9.80665 / 1000 '重力加速度常數 (格/ms^2)
+        Public LastUpdate As Long '(ms)
+
+        Private WallDetectX0 As Integer
+        Private WallDetectX08 As Integer
+        Private WallDetectY0 As Integer
+        Private WallDetectY09 As Integer
+        Private WallDetectY18 As Integer
+
+        Public Map As Integer(,)
+        Public Map_Width As Integer
+        Public Map_Height As Integer
+        Private Map_Texture As Bitmap() = {My.Resources.Game.Cobblestone, My.Resources.Game.Cobblestone}
+        Private MapDx As Double = 0
+        Private MapDy As Double = 0
+
+        Private CharacterImg As Bitmap = My.Resources.Game.Character
+        Public CharacterBox As RectangleF
+        Public CharacterX As Double = 5.1
+        Public CharacterY As Double = 1
+        Private Character_Speed As Double = 0.055
+        Private CharacterYv As Double = 0
+
+
+        Public Character_Jump As Boolean = False
+        Public Const Character_Jump_Speed As Double = 0.08 '(格/ms)
+        Public Jump_Delay As Integer = 250 '(ms)
+        Public Last_Jump As Long = 0
+
+        Public Sub BoxSetting(ptx As Double, pty As Double, ptwidth As Double, ptheight As Double)
+            x = ptx
+            y = pty
+            width = ptwidth
+            height = ptheight
+        End Sub
+
+        Public Sub Detect()
+            WallDetectX0 = Math.Floor(CharacterX)
+            WallDetectX08 = Math.Floor(CharacterX + 0.8)
+            WallDetectY0 = Math.Floor(Map_Height - CharacterY)
+            WallDetectY09 = Math.Floor(Map_Height - (CharacterY + 0.9))
+            WallDetectY18 = Math.Floor(Map_Height - (CharacterY + 1.8))
+
+            If WallDetectX0 < 0 Then
+                WallDetectX0 = 0
+            ElseIf WallDetectX0 > Map_Width - 1 Then
+                WallDetectX0 = Map_Width - 1
+            End If
+
+            If WallDetectX08 < 0 Then
+                WallDetectX08 = 0
+            ElseIf WallDetectX08 > Map_Width - 1 Then
+                WallDetectX08 = Map_Width - 1
+            End If
+
+            If WallDetectY0 <= 0 Then
+                WallDetectY0 = 0
+            ElseIf WallDetectY0 > Map_Height - 1 Then
+                WallDetectY0 = Map_Height - 1
+            End If
+
+            If WallDetectY09 <= 0 Then
+                WallDetectY09 = 0
+            ElseIf WallDetectY09 > Map_Height - 1 Then
+                WallDetectY09 = Map_Height - 1
+            End If
+
+            If WallDetectY18 <= 0 Then
+                WallDetectY18 = 0
+            ElseIf WallDetectY18 > Map_Height - 1 Then
+                WallDetectY18 = Map_Height - 1
+            End If
+        End Sub
+
+        Public Sub DrawGame(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef Keyboard() As Boolean)
+            '畫背景
+            e.Graphics.DrawImage(BG, New RectangleF(x + MapDx * ScaleRatio, y + MapDy * ScaleRatio, width, height))
+
+            '畫地圖
+            For i = 0 To Map_Height - 1
+                For j = 0 To Map_Width - 1
+                    If Map(i, j) > 0 Then
+                        e.Graphics.DrawImage(Map_Texture(Map(i, j)), New RectangleF(x + MapDx * ScaleRatio, y + MapDy * ScaleRatio, 48 * ScaleRatio, 48 * ScaleRatio))
+                    End If
+
+                    MapDx += 48
+                Next
+                MapDx = 0
+                MapDy += 48
+            Next
+            MapDx = 0
+            MapDy = 0
+
+            '畫角色
+            If Keyboard(Keys.D) Then
+                CharacterImg = My.Resources.Game.Character
+                CharacterX += Character_Speed
+            End If
+            If Keyboard(Keys.A) Then
+                CharacterImg = My.Resources.Game.CharacterL
+                CharacterX -= Character_Speed
+            End If
+            If Keyboard(Keys.Space) And Character_Jump = False And Now.Ticks() / 10000 - Last_Jump > Jump_Delay Then
+                CharacterY += Character_Speed
+                CharacterYv = Character_Jump_Speed
+                Character_Jump = True
+                Last_Jump = Now.Ticks() / 10000
+            End If
+
+            CharacterYv -= G
+            CharacterY += CharacterYv * (Now.Ticks() / 10000 - LastUpdate)
+
+            Detect()
+            If (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY0, WallDetectX08) <> 0) And Math.Floor(CharacterY) <= CharacterY And CharacterY < Math.Floor(CharacterY) + 1 Then
+                CharacterYv = 0
+                CharacterY = Math.Floor(CharacterY) + 1
+                Character_Jump = False
+            End If
+
+            Detect()
+            If Character_Jump And (Map(WallDetectY18, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(CharacterY + 1.8) < CharacterY + 1.8 And CharacterY + 1.8 < Math.Floor(CharacterY + 1.8) + 1 Then
+                CharacterY = Math.Floor(CharacterY + 1.8) - 1.8
+            End If
+
+            Detect()
+            If (Map(WallDetectY09, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX0) <> 0) And Math.Floor(CharacterX) < CharacterX And CharacterX < Math.Floor(CharacterX) + 1 Then
+                CharacterX = Math.Floor(CharacterX) + 1
+            End If
+            Detect()
+            If (Map(WallDetectY09, WallDetectX08) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(CharacterX + 0.8) < CharacterX + 0.8 And CharacterX + 0.8 < Math.Floor(CharacterX + 0.8) + 1 Then
+                CharacterX = Math.Floor(CharacterX + 0.8) - 0.8
+            End If
+
+            CharacterBox = New RectangleF(x + CharacterX * 48 * ScaleRatio, y + (Map_Height - CharacterY) * 48 * ScaleRatio - 86.4 * ScaleRatio, 38.4 * ScaleRatio, 86.4 * ScaleRatio)
+
+            e.Graphics.DrawImage(CharacterImg, CharacterBox)
+            LastUpdate = Now.Ticks() / 10000
         End Sub
     End Class
 
@@ -665,7 +689,7 @@ Public Class Form1
                 HowToPlay_Text.point.X = MyWidth / 2 - 182 * ScaleRatio
                 HowToPlay_Text.Draw("移動角色，", e, myfont, ScaleRatio)
                 HowToPlay_Text.point.X = MyWidth / 2 + 70 * ScaleRatio
-                HowToPlay_Text.Draw("跳躍", e, myfont, ScaleRatio)
+                HowToPlay_Text.Draw("攀爬 / 跳躍", e, myfont, ScaleRatio)
 
                 e.Graphics.FillRectangle(Brushes.Black, New RectangleF(MyWidth / 2 + 702 / 2 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth - (MyWidth / 2 + 702 / 2 * ScaleRatio), 382.811 * ScaleRatio))
 

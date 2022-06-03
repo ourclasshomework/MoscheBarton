@@ -278,12 +278,18 @@ Public Class Form1
         Public BG As Bitmap
         Private Const G As Double = 9.80665 / 1000 '重力加速度常數 (格/ms^2)
         Public LastUpdate As Long '(ms)
+        Public CameraX As Double = 0
+        Public CameraY As Double = 0
 
         Private WallDetectX0 As Integer
         Private WallDetectX08 As Integer
         Private WallDetectY0 As Integer
         Private WallDetectY09 As Integer
         Private WallDetectY18 As Integer
+        Private CharacterLeft As Boolean
+        Private CharacterRight As Boolean
+        Private CharacterTop As Boolean
+        Private CharacterBottom As Boolean
 
         Public Map As Integer(,)
         Public Map_Width As Integer
@@ -292,18 +298,33 @@ Public Class Form1
         Private MapDx As Double = 0
         Private MapDy As Double = 0
 
-        Private CharacterImg As Bitmap = My.Resources.Game.Character
+        Private CharacterImg As Bitmap = My.Resources.Game.CRNN
+        Private CharacterAttackWidth As Double = 0
+        Private CharacterWidth As Double = 27
+        Private CharacterHeight As Double = 84
+        Private CharacterHitBoxWidth As Double = 27 / 48
+        Private CharacterHitBoxHeight As Double = 84 / 48
+        Private CharacterMoveAni As Integer = 0
+        Private CharacterMoveAniTimer As Long
+        Private CharacterDirection As Boolean = False 'False = 右，True = 左
+
         Public CharacterBox As RectangleF
-        Public CharacterX As Double = 5.1
-        Public CharacterY As Double = 1
-        Private Character_Speed As Double = 0.055
+        Public CharacterX As Double
+        Public CharacterY As Double
+        Private Character_Speed As Double = 0.075 '(格/每次更新)
         Private CharacterYv As Double = 0
 
 
-        Public Character_Jump As Boolean = False
-        Public Const Character_Jump_Speed As Double = 0.08 '(格/ms)
-        Public Jump_Delay As Integer = 250 '(ms)
-        Public Last_Jump As Long = 0
+        Private Character_Jump As Boolean = False
+        Private Character_CanJump As Boolean = True
+        Private Const Character_Jump_Speed As Double = 0.075 '(格/ms)
+        Private Jump_Delay As Integer = 350 '(ms)
+        Private Last_Jump As Long = 0
+
+        Public Sub CameraReset()
+            CameraX = 0
+            CameraY = 0
+        End Sub
 
         Public Sub BoxSetting(ptx As Double, pty As Double, ptwidth As Double, ptheight As Double)
             x = ptx
@@ -314,10 +335,10 @@ Public Class Form1
 
         Public Sub Detect()
             WallDetectX0 = Math.Floor(CharacterX)
-            WallDetectX08 = Math.Floor(CharacterX + 0.8)
-            WallDetectY0 = Math.Floor(Map_Height - CharacterY)
-            WallDetectY09 = Math.Floor(Map_Height - (CharacterY + 0.9))
-            WallDetectY18 = Math.Floor(Map_Height - (CharacterY + 1.8))
+            WallDetectX08 = Math.Floor(CharacterX + CharacterHitBoxWidth - 0.000001)
+            WallDetectY0 = Math.Floor(Map_Height - (CharacterY + 0.000001))
+            WallDetectY09 = Math.Floor(Map_Height - (CharacterY + CharacterHitBoxHeight / 2))
+            WallDetectY18 = Math.Floor(Map_Height - (CharacterY + CharacterHitBoxHeight - 0.000001))
 
             If WallDetectX0 < 0 Then
                 WallDetectX0 = 0
@@ -348,68 +369,219 @@ Public Class Form1
             ElseIf WallDetectY18 > Map_Height - 1 Then
                 WallDetectY18 = Map_Height - 1
             End If
+
+            CharacterLeft = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY09, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX0) <> 0) And Math.Floor(CharacterX) < CharacterX And CharacterX < Math.Floor(CharacterX) + 1
+            CharacterRight = (Map(WallDetectY0, WallDetectX08) <> 0 Or Map(WallDetectY09, WallDetectX08) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(CharacterX + CharacterHitBoxWidth) < CharacterX + CharacterHitBoxWidth And CharacterX + CharacterHitBoxWidth < Math.Floor(CharacterX + CharacterHitBoxWidth) + 1
+            CharacterTop = (Map(WallDetectY18, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(CharacterY + CharacterHitBoxHeight) < CharacterY + CharacterHitBoxHeight And CharacterY + CharacterHitBoxHeight < Math.Floor(CharacterY + CharacterHitBoxHeight) + 1
+            CharacterBottom = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY0, WallDetectX08) <> 0) And Math.Floor(CharacterY) < CharacterY And CharacterY < Math.Floor(CharacterY) + 1
         End Sub
 
-        Public Sub DrawGame(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef Keyboard() As Boolean)
-            '畫背景
-            e.Graphics.DrawImage(BG, New RectangleF(x + MapDx * ScaleRatio, y + MapDy * ScaleRatio, width, height))
+        Public Sub CharacterImgChange(ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean)
+            If MousePressed Then
+                If Keyboard(Keys.A) Then
+                    CharacterWidth = 67.0383
+                    CharacterHeight = 84.5916
+                    CharacterAttackWidth = 27
+                    CharacterHitBoxWidth = 27 / 48
+                    CharacterHitBoxHeight = 84.5916 / 48
 
+                    Select Case CharacterMoveAni
+                        Case 0
+                            CharacterImg = My.Resources.Game.CLAW0
+                        Case 1
+                            CharacterImg = My.Resources.Game.CLAW1
+                        Case 2
+                            CharacterImg = My.Resources.Game.CLAW2
+                    End Select
+                End If
+
+                If Keyboard(Keys.D) Then
+                    CharacterWidth = 67.0383
+                    CharacterHeight = 84.5916
+                    CharacterAttackWidth = 0
+                    CharacterHitBoxWidth = 40.0383 / 48
+                    CharacterHitBoxHeight = 84.5916 / 48
+
+                    Select Case CharacterMoveAni
+                        Case 0
+                            CharacterImg = My.Resources.Game.CRAW0
+                        Case 1
+                            CharacterImg = My.Resources.Game.CRAW1
+                        Case 2
+                            CharacterImg = My.Resources.Game.CRAW2
+                    End Select
+                End If
+
+
+                If Not Keyboard(Keys.A) And Not Keyboard(Keys.D) Then
+                    CharacterWidth = 58.0383
+                    CharacterHeight = 84
+                    CharacterHitBoxWidth = 27 / 48
+                    CharacterHitBoxHeight = 84 / 48
+
+                    If CharacterDirection Then
+                        CharacterAttackWidth = -12.1249
+                        CharacterImg = My.Resources.Game.CRAN
+                    Else
+                        CharacterAttackWidth = 31.0383 - 12.1249
+                        CharacterImg = My.Resources.Game.CLAN
+                    End If
+                End If
+            Else
+                If Keyboard(Keys.A) Then
+                    CharacterWidth = 39.1249
+                    CharacterHeight = 84.5916
+                    CharacterAttackWidth = 0
+                    CharacterHitBoxWidth = 39.1249 / 48
+                    CharacterHitBoxHeight = 84.5916 / 48
+
+                    Select Case CharacterMoveAni
+                        Case 0
+                            CharacterImg = My.Resources.Game.CLNW0
+                        Case 1
+                            CharacterImg = My.Resources.Game.CLNW1
+                        Case 2
+                            CharacterImg = My.Resources.Game.CLNW2
+                    End Select
+                End If
+
+                If Keyboard(Keys.D) Then
+                    CharacterWidth = 39.1249
+                    CharacterHeight = 84.5916
+                    CharacterAttackWidth = 0
+                    CharacterHitBoxWidth = 39.1249 / 48
+                    CharacterHitBoxHeight = 84.5916 / 48
+
+                    Select Case CharacterMoveAni
+                        Case 0
+                            CharacterImg = My.Resources.Game.CRNW0
+                        Case 1
+                            CharacterImg = My.Resources.Game.CRNW1
+                        Case 2
+                            CharacterImg = My.Resources.Game.CRNW2
+                    End Select
+                End If
+
+                If Not Keyboard(Keys.A) And Not Keyboard(Keys.D) Then
+                    CharacterWidth = 27
+                    CharacterHeight = 84
+                    CharacterAttackWidth = -12.1249
+                    CharacterHitBoxWidth = 27 / 48
+                    CharacterHitBoxHeight = 84.5916 / 48
+
+                    If CharacterDirection Then
+                        CharacterImg = My.Resources.Game.CRNN
+                    Else
+                        CharacterImg = My.Resources.Game.CLNN
+                    End If
+                End If
+            End If
+        End Sub
+
+        Public Sub DrawGame(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean)
+            '畫背景
+            e.Graphics.DrawImage(BG, New RectangleF(x, y, width, height))
+
+            If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX > x + width / 2 And x + width < x + Map_Width * 48 * ScaleRatio + CameraX Then
+                CameraX -= 3 * ScaleRatio
+            End If
+            If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX < x + width / 2 And x > x + CameraX Then
+                CameraX += 3 * ScaleRatio
+            End If
+            If y + height - CharacterY * 48 * ScaleRatio - CharacterBox.Height / 2 + CameraY < y + height / 2 And y > y + height - Map_Height * 48 * ScaleRatio + CameraY Then
+                CameraY += 3 * ScaleRatio
+            End If
+            If y + height - CharacterY * 48 * ScaleRatio - CharacterBox.Height / 2 + CameraY > y + height / 2 And y + height < y + height + CameraY Then
+                CameraY -= 3 * ScaleRatio
+            End If
+
+
+            If Keyboard(Keys.Up) Then
+                CameraY -= 1 * ScaleRatio
+            End If
+            If Keyboard(Keys.Down) Then
+                CameraY += 1 * ScaleRatio
+            End If
+            If Keyboard(Keys.Left) Then
+                CameraX -= 1 * ScaleRatio
+            End If
+            If Keyboard(Keys.Right) Then
+                CameraX += 1 * ScaleRatio
+            End If
+
+            MapDx = 0
+            MapDy = height - Map_Height * 48 * ScaleRatio
             '畫地圖
             For i = 0 To Map_Height - 1
                 For j = 0 To Map_Width - 1
                     If Map(i, j) > 0 Then
-                        e.Graphics.DrawImage(Map_Texture(Map(i, j)), New RectangleF(x + MapDx * ScaleRatio, y + MapDy * ScaleRatio, 48 * ScaleRatio, 48 * ScaleRatio))
+                        e.Graphics.DrawImage(Map_Texture(Map(i, j)), New RectangleF(x + MapDx + CameraX, y + MapDy + CameraY, 48 * ScaleRatio, 48 * ScaleRatio))
                     End If
 
-                    MapDx += 48
+                    MapDx += 48 * ScaleRatio
                 Next
                 MapDx = 0
-                MapDy += 48
+                MapDy += 48 * ScaleRatio
             Next
-            MapDx = 0
-            MapDy = 0
+
 
             '畫角色
             If Keyboard(Keys.D) Then
-                CharacterImg = My.Resources.Game.Character
+                CharacterDirection = True
                 CharacterX += Character_Speed
+                Detect()
+                If CharacterRight Then
+                    CharacterX = Math.Floor(CharacterX) + (1 - CharacterHitBoxWidth - 0.000001)
+                End If
             End If
+
             If Keyboard(Keys.A) Then
-                CharacterImg = My.Resources.Game.CharacterL
+                CharacterDirection = False
                 CharacterX -= Character_Speed
+                Detect()
+                If CharacterLeft Then
+                    CharacterX = Math.Floor(CharacterX) + 1
+                End If
             End If
-            If Keyboard(Keys.Space) And Character_Jump = False And Now.Ticks() / 10000 - Last_Jump > Jump_Delay Then
-                CharacterY += Character_Speed
+
+            If Keyboard(Keys.Space) And Character_Jump = False And Character_CanJump And Now.Ticks() / 10000 - Last_Jump > Jump_Delay Then
                 CharacterYv = Character_Jump_Speed
                 Character_Jump = True
+                Character_CanJump = False
                 Last_Jump = Now.Ticks() / 10000
+            End If
+
+            If Not Keyboard(Keys.Space) Then
+                Character_CanJump = True
             End If
 
             CharacterYv -= G
             CharacterY += CharacterYv * (Now.Ticks() / 10000 - LastUpdate)
-
             Detect()
-            If (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY0, WallDetectX08) <> 0) And Math.Floor(CharacterY) <= CharacterY And CharacterY < Math.Floor(CharacterY) + 1 Then
-                CharacterYv = 0
+            If CharacterTop And Character_Jump Then
+                CharacterY = Math.Floor(CharacterY + CharacterHitBoxHeight) - CharacterHitBoxHeight
+            End If
+            Detect()
+            If CharacterBottom Then
                 CharacterY = Math.Floor(CharacterY) + 1
+                CharacterYv = 0
                 Character_Jump = False
             End If
 
-            Detect()
-            If Character_Jump And (Map(WallDetectY18, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(CharacterY + 1.8) < CharacterY + 1.8 And CharacterY + 1.8 < Math.Floor(CharacterY + 1.8) + 1 Then
-                CharacterY = Math.Floor(CharacterY + 1.8) - 1.8
+            If Now.Ticks() / 10000 - CharacterMoveAniTimer > 100 Then
+                CharacterMoveAniTimer = Now.Ticks() / 10000
+                CharacterMoveAni += 1
+                If CharacterMoveAni > 2 Then
+                    CharacterMoveAni = 0
+                End If
             End If
 
-            Detect()
-            If (Map(WallDetectY09, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX0) <> 0) And Math.Floor(CharacterX) < CharacterX And CharacterX < Math.Floor(CharacterX) + 1 Then
-                CharacterX = Math.Floor(CharacterX) + 1
-            End If
-            Detect()
-            If (Map(WallDetectY09, WallDetectX08) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(CharacterX + 0.8) < CharacterX + 0.8 And CharacterX + 0.8 < Math.Floor(CharacterX + 0.8) + 1 Then
-                CharacterX = Math.Floor(CharacterX + 0.8) - 0.8
-            End If
+            CharacterImgChange(Keyboard, Mouse, MousePressed)
 
-            CharacterBox = New RectangleF(x + CharacterX * 48 * ScaleRatio, y + (Map_Height - CharacterY) * 48 * ScaleRatio - 86.4 * ScaleRatio, 38.4 * ScaleRatio, 86.4 * ScaleRatio)
+            CharacterBox = New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio - CharacterAttackWidth * ScaleRatio,
+                                          y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio,
+                                          CharacterWidth * ScaleRatio,
+                                          CharacterHeight * ScaleRatio)
 
             e.Graphics.DrawImage(CharacterImg, CharacterBox)
             LastUpdate = Now.Ticks() / 10000
@@ -417,9 +589,9 @@ Public Class Form1
     End Class
 
     '快速調整設定區
-    Dim State As String = "HowToPlay1"
+    Dim State As String = "Start"
 
-    Const Version As String = "Insider Preview 1.1"
+    Const Version As String = "Insider Preview 1.2"
     Const Copyright As String = "III Studio 製作"
 
     Const DefaultWidth As Integer = 800 '預設的寬度
@@ -501,13 +673,25 @@ Public Class Form1
     Dim NextPageButton As New MyButton With {.Image = My.Resources.HowToPlay.NextPage, .PressedImage = My.Resources.HowToPlay.NextPage_Pressed}
     Dim HowToPlay_Text As New MyTextBox With {.font = "Cubic11", .font_size = 21.5, .color = Color.Black}
     Dim HowToPlay_Img As New MyPictureBox With {.Image = My.Resources.HowToPlay.HowToPlay1}
-    Dim DemoGame As New Game With {.Map = {{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-                                           {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-                                           {1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1},
-                                           {1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1},
-                                           {1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1},
-                                           {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}},
-                                   .Map_Width = 14, .Map_Height = 6, .BG = My.Resources.HowToPlay.Sky}
+    Dim HowToPlay1_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
+                                        {1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1},
+                                        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
+    Dim DemoGame As New Game With {.Map = HowToPlay1_Map, .Map_Width = 16, .Map_Height = 8, .BG = My.Resources.HowToPlay.Sky}
+
+    'HowToPlay2初始化
+    Dim HowToPlay2_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
 
     'Setting 初始化
     Dim SettingText As New MyTextBox With {.font = "Cubic11", .font_size = 30.9, .color = Color.White}
@@ -551,7 +735,7 @@ Public Class Form1
                 LoadingIndex = 0
             End If
 
-            Loading.BoxSetting(MyWidth - 50, MyHeight - 50, 30, 30)
+            Loading.BoxSetting(MyWidth - 50 * ScaleRatio, MyHeight - 50 * ScaleRatio, 30 * ScaleRatio, 30 * ScaleRatio)
             Loading.Image = LoadingSeq(LoadingIndex)
             Loading.Draw(e)
         End If
@@ -660,6 +844,12 @@ Public Class Form1
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay1
                     BGisOn = False
                     State = "HowToPlay1"
+                    DemoGame.CharacterX = 1.1
+                    DemoGame.CharacterY = 1
+                    DemoGame.Map_Width = 16
+                    DemoGame.Map_Height = 8
+                    DemoGame.CameraReset()
+                    DemoGame.Map = HowToPlay1_Map
                 End If
 
                 SettingButton.Box = New RectangleF(MyWidth - 258 * ScaleRatio, 245 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
@@ -674,10 +864,9 @@ Public Class Form1
 
 
             Case "HowToPlay1"
-
                 DemoGame.BoxSetting(MyWidth / 2 - 335 * ScaleRatio, MyHeight / 2 - 112 * ScaleRatio, 670 * ScaleRatio, 287 * ScaleRatio)
                 DemoGame.LastUpdate = Now.Ticks() / 10000
-                DemoGame.DrawGame(e, ScaleRatio, Keyboard)
+                DemoGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed)
 
                 HowToPlay_Img.BoxSetting(MyWidth / 2 - 702 / 2 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, 702 * ScaleRatio, 382.811 * ScaleRatio)
                 HowToPlay_Img.Draw(e)
@@ -689,17 +878,30 @@ Public Class Form1
                 HowToPlay_Text.point.X = MyWidth / 2 - 182 * ScaleRatio
                 HowToPlay_Text.Draw("移動角色，", e, myfont, ScaleRatio)
                 HowToPlay_Text.point.X = MyWidth / 2 + 70 * ScaleRatio
-                HowToPlay_Text.Draw("攀爬 / 跳躍", e, myfont, ScaleRatio)
+                HowToPlay_Text.Draw("跳躍", e, myfont, ScaleRatio)
 
-                e.Graphics.FillRectangle(Brushes.Black, New RectangleF(MyWidth / 2 + 702 / 2 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth - (MyWidth / 2 + 702 / 2 * ScaleRatio), 382.811 * ScaleRatio))
+                e.Graphics.FillRectangle(Brushes.Black, New RectangleF(0, 0, MyWidth, MyHeight / 2 - 382.811 / 2 * ScaleRatio))
+                e.Graphics.FillRectangle(Brushes.Black, New RectangleF(0, MyHeight / 2 - 382.811 / 2 * ScaleRatio + 382.811 * ScaleRatio, MyWidth, MyHeight - (MyHeight / 2 - 382.811 / 2 * ScaleRatio + 382.811 * ScaleRatio)))
+                e.Graphics.FillRectangle(Brushes.Black, New RectangleF(0, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth / 2 - 702 / 2 * ScaleRatio, 382.811 * ScaleRatio))
+                e.Graphics.FillRectangle(Brushes.Black, New RectangleF(MyWidth / 2 - 702 / 2 * ScaleRatio + 702 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth / 2 - 702 / 2 * ScaleRatio, 382.811 * ScaleRatio))
 
                 NextPageButton.Box = New RectangleF(MyWidth / 2 + 175 * ScaleRatio, MyHeight / 2 + 150 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
                 If NextPageButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay2
                     State = "HowToPlay2"
+                    DemoGame.CharacterX = 1.1
+                    DemoGame.CharacterY = 1
+                    DemoGame.Map_Width = 14
+                    DemoGame.Map_Height = 8
+                    DemoGame.CameraReset()
+                    DemoGame.Map = HowToPlay2_Map
                 End If
 
             Case "HowToPlay2"
+                DemoGame.BoxSetting(MyWidth / 2 - 335 * ScaleRatio, MyHeight / 2 - 112 * ScaleRatio, 670 * ScaleRatio, 287 * ScaleRatio)
+                DemoGame.LastUpdate = Now.Ticks() / 10000
+                DemoGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed)
+
                 HowToPlay_Img.BoxSetting(MyWidth / 2 - 702 / 2 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, 702 * ScaleRatio, 382.811 * ScaleRatio)
                 HowToPlay_Img.Draw(e)
 
@@ -709,6 +911,11 @@ Public Class Form1
                 HowToPlay_Text.Draw("按下右鍵攻擊敵人，", e, myfont, ScaleRatio)
                 HowToPlay_Text.point.X = MyWidth / 2 - 4 * ScaleRatio
                 HowToPlay_Text.Draw("釋放技能", e, myfont, ScaleRatio)
+
+                e.Graphics.FillRectangle(Brushes.Black, New RectangleF(0, 0, MyWidth, MyHeight / 2 - 382.811 / 2 * ScaleRatio))
+                e.Graphics.FillRectangle(Brushes.Black, New RectangleF(0, MyHeight / 2 - 382.811 / 2 * ScaleRatio + 382.811 * ScaleRatio, MyWidth, MyHeight - (MyHeight / 2 - 382.811 / 2 * ScaleRatio + 382.811 * ScaleRatio)))
+                e.Graphics.FillRectangle(Brushes.Black, New RectangleF(0, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth / 2 - 702 / 2 * ScaleRatio, 382.811 * ScaleRatio))
+                e.Graphics.FillRectangle(Brushes.Black, New RectangleF(MyWidth / 2 - 702 / 2 * ScaleRatio + 702 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth / 2 - 702 / 2 * ScaleRatio, 382.811 * ScaleRatio))
 
                 NextPageButton.Box = New RectangleF(MyWidth / 2 + 175 * ScaleRatio, MyHeight / 2 + 150 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
                 If NextPageButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
@@ -807,7 +1014,6 @@ Public Class Form1
 
             e.Graphics.DrawLine(New Pen(Color.Yellow), New PointF(0, MyHeight / 2), New PointF(MyWidth, MyHeight / 2))
             e.Graphics.DrawLine(New Pen(Color.Yellow), New PointF(MyWidth / 2, 0), New PointF(MyWidth / 2, MyHeight))
-
             lastUpdate = Now.Ticks() / 10000
         End If
     End Sub

@@ -166,12 +166,87 @@ MoscheBarton
   使用這個強類型資源類別的資源查閱。
 </summary>
 </member>
-<member name="P:MoscheBarton.My.Resources.Game.Character">
+<member name="P:MoscheBarton.My.Resources.Game.CLAN">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CLAW0">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CLAW1">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CLAW2">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CLNN">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CLNW0">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CLNW1">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CLNW2">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>
 </member>
 <member name="P:MoscheBarton.My.Resources.Game.Cobblestone">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CRAN">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CRAW0">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CRAW1">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CRAW2">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CRNN">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CRNW0">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CRNW1">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CRNW2">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>

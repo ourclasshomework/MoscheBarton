@@ -272,28 +272,34 @@ Public Class Form1
     End Class
 
     Public Class Game
+        '遊戲畫面基本設定--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Public x As Double
         Public y As Double
         Public width As Double
         Public height As Double
         Public BG As Bitmap
         Private Const G As Double = 9.80665 / 1000 '重力加速度常數 (格/ms^2)
-        Public LastUpdate As Long '(ms)
         Public CameraX As Double = 0
         Public CameraY As Double = 0
+        Private CameraSpeed As Double = 3 'pixel/每次更新
 
-        Public SoundEffect As WMPLib.WindowsMediaPlayer
+        '遊戲音效的撥放器--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Public Attack As New WMPLib.WindowsMediaPlayer
 
+        '所有角色的偵測--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Private WallDetectX0 As Integer
         Private WallDetectX08 As Integer
         Private WallDetectY0 As Integer
         Private WallDetectY09 As Integer
         Private WallDetectY18 As Integer
+
+        '主角偵測--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Private CharacterLeft As Boolean
         Private CharacterRight As Boolean
         Private CharacterTop As Boolean
         Private CharacterBottom As Boolean
 
+        '地圖--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Public Map As Integer(,)
         Public Map_Width As Integer
         Public Map_Height As Integer
@@ -301,50 +307,78 @@ Public Class Form1
         Private MapDx As Double = 0
         Private MapDy As Double = 0
 
+        '受傷數值文字--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Public myfont As PrivateFontCollection
+        Private DamageText As New MyTextBox With {.font = "Cubic11", .font_size = 24, .color = Color.FromArgb(244, 67, 54), .Align = "Center", .LineAlign = "Center"}
+        Public Damage As Double
+        Public ShowDamage As Boolean = False
+        Public LastShowDamage As Long = 0
+
+        '角色--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Private CharacterImg As Bitmap = My.Resources.Game.CRNN
-        Private CharacterAttackWidth As Double = 0
-        Public CharacterHealth As Double = 80
-        Private CharacterWidth As Double = 27
-        Private CharacterHeight As Double = 84
-        Private CharacterHitBoxWidth As Double = 27 / 48
-        Private CharacterHitBoxHeight As Double = 84 / 48
         Private CharacterMoveAni As Integer = 0
         Private CharacterMoveAniTimer As Long
         Private CharacterDirection As Boolean = False 'False = 右，True = 左
 
-        Public CharacterBox As RectangleF
-        Public CharacterX As Double
-        Public CharacterY As Double
         Private Character_Speed As Double = 0.075 '(格/每次更新)
         Private CharacterYv As Double = 0
 
-        Private BulletImg As Bitmap = My.Resources.Game.BulletR
-        Public BulletBox As RectangleF
-        Public BulletX As Double
-        Public BulletY As Double
-        Private BulletDetectX As Integer
-        Private BulletDetectY As Integer
-        Public Const BulletSpeed As Double = 0.3 '格/每次更新
-        Public BulletDirection As Boolean = False 'False = 右，True = 左
-        Public CanShoot As Boolean = True
-        Public LastShoot As Long = 0
-        Public Const ShootGap As Long = 250 'ms
-        Private HadShot As Boolean = False
+        Public Const CharacterMaxHealth As Double = 500
+        Public CharacterHealth As Double = CharacterMaxHealth
+
+        Public CharacterBox As RectangleF
+        Public CharacterX As Double
+        Public CharacterY As Double
+        Private CharacterWidth As Double = 27
+        Private CharacterHeight As Double = 84
+        Private CharacterHitBoxWidth As Double = 27 / 48
+        Private CharacterHitBoxHeight As Double = 84 / 48
+        Private CharacterAttackWidth As Double = 0
+
+        Public CharacterHarmDamage As Double = 5
 
         Private Character_Jump As Boolean = False
         Private Character_CanJump As Boolean = True
-        Private Const Character_Jump_Speed As Double = 0.075 '(格/ms)
+        Private Const Character_Jump_Speed As Double = 0.075 '(格/每次更新)
         Private Jump_Delay As Integer = 350 '(ms)
         Private Last_Jump As Long = 0
 
-        Private MonsterImg As Bitmap = My.Resources.Game.SlimeL
-        Private Monster_Texture As Bitmap() = {My.Resources.Game.SlimeL, My.Resources.Game.SlimeR}
-        Public MonsterBox As RectangleF
-        Public MonsterX As Double = 0
-        Public MonsterY As Double = 0
-        Public MonsterWidth As Double = 63
-        Public MonsterHeight As Double = 84
-        Public MonsterType As Integer = 0
+        '子彈--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Private BulletImg As Bitmap = My.Resources.Game.BulletR
+        Public BulletDirection As Boolean = False 'False = 右，True = 左
+
+        Public BulletBox As RectangleF
+        Public BulletX As Double
+        Public BulletY As Double
+        Public BulletWidth As Double = 12
+        Public BulletHeight As Double = 24
+
+        Public CharacterShootX As Double
+        Public CharacterShootY As Double
+
+        Private BulletDetectX As Integer
+        Private BulletDetectY As Integer
+        Private Const BulletSpeed As Double = 0.3 '格/每次更新
+
+        Public CanShoot As Boolean = True
+        Private LastShoot As Long = 0
+        Private ShootGap As Long = 250 'ms
+        Private HadShot As Boolean = False
+
+        '攻擊CD條--------------------------------------------------------------------------------------------------------------------------------------------
+        Private CDBarFull As Double = 1
+        Private CDShowValue As Double = 1
+
+        Public Sub CharacterReset(x As Double, y As Double)
+            CharacterX = x
+            CharacterY = y
+            CharacterHealth = CharacterMaxHealth
+        End Sub
+
+        Public Sub MapSetting(w As Integer, h As Integer)
+            Map_Width = w
+            Map_Height = h
+        End Sub
 
         Public Sub CameraReset()
             CameraX = 0
@@ -358,7 +392,7 @@ Public Class Form1
             height = ptheight
         End Sub
 
-        Public Sub Detect()
+        Private Sub Detect()
             WallDetectX0 = Math.Floor(CharacterX)
             WallDetectX08 = Math.Floor(CharacterX + CharacterHitBoxWidth - 0.000001)
             WallDetectY0 = Math.Floor(Map_Height - (CharacterY + 0.000001))
@@ -395,14 +429,14 @@ Public Class Form1
                 WallDetectY18 = Map_Height - 1
             End If
 
-            CharacterLeft = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY09, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX0) <> 0) And Not (Map(WallDetectY0, WallDetectX0) >= 100 Or Map(WallDetectY09, WallDetectX0) >= 100 Or Map(WallDetectY18, WallDetectX0) >= 100) And Math.Floor(CharacterX) < CharacterX And CharacterX < Math.Floor(CharacterX) + 1
-            CharacterRight = (Map(WallDetectY0, WallDetectX08) <> 0 Or Map(WallDetectY09, WallDetectX08) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Not (Map(WallDetectY0, WallDetectX08) >= 100 Or Map(WallDetectY09, WallDetectX08) >= 100 Or Map(WallDetectY18, WallDetectX08) >= 100) And Math.Floor(CharacterX + CharacterHitBoxWidth) < CharacterX + CharacterHitBoxWidth And CharacterX + CharacterHitBoxWidth < Math.Floor(CharacterX + CharacterHitBoxWidth) + 1
-            CharacterTop = (Map(WallDetectY18, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Not (Map(WallDetectY18, WallDetectX0) >= 100 Or Map(WallDetectY18, WallDetectX08) >= 100) And Math.Floor(CharacterY + CharacterHitBoxHeight) < CharacterY + CharacterHitBoxHeight And CharacterY + CharacterHitBoxHeight < Math.Floor(CharacterY + CharacterHitBoxHeight) + 1
-            CharacterBottom = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY0, WallDetectX08) <> 0) And Not (Map(WallDetectY0, WallDetectX0) >= 100 Or Map(WallDetectY0, WallDetectX08) >= 100) And Math.Floor(CharacterY) < CharacterY And CharacterY < Math.Floor(CharacterY) + 1
+            CharacterLeft = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY09, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX0) <> 0) And Math.Floor(CharacterX) < CharacterX And CharacterX < Math.Floor(CharacterX) + 1
+            CharacterRight = (Map(WallDetectY0, WallDetectX08) <> 0 Or Map(WallDetectY09, WallDetectX08) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(CharacterX + CharacterHitBoxWidth) < CharacterX + CharacterHitBoxWidth And CharacterX + CharacterHitBoxWidth < Math.Floor(CharacterX + CharacterHitBoxWidth) + 1
+            CharacterTop = (Map(WallDetectY18, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(CharacterY + CharacterHitBoxHeight) < CharacterY + CharacterHitBoxHeight And CharacterY + CharacterHitBoxHeight < Math.Floor(CharacterY + CharacterHitBoxHeight) + 1
+            CharacterBottom = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY0, WallDetectX08) <> 0) And Math.Floor(CharacterY) < CharacterY And CharacterY < Math.Floor(CharacterY) + 1
         End Sub
 
-        Public Sub CharacterImgChange(ByRef e As PaintEventArgs, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean, ByRef ScaleRatio As Double)
-            If MousePressed Then
+        Private Sub CharacterImgChange(ByRef e As PaintEventArgs, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean, ByRef ScaleRatio As Double)
+            If MousePressed Or Keyboard(Keys.E) Then
                 If Keyboard(Keys.A) Then
                     CharacterWidth = 67.0383
                     CharacterHeight = 84.5916
@@ -477,9 +511,47 @@ Public Class Form1
                     BulletY = CharacterY + 0.9
                     CanShoot = False
                     HadShot = True
-                    SoundEffect.URL = My.Application.Info.DirectoryPath & "\Music\射出.mp3" '選擇路徑
-                    SoundEffect.settings.setMode("loop", False) '設定是否循環
-                    SoundEffect.controls.play() '播放
+
+                    CharacterShootX = CharacterX
+                    CharacterShootY = CharacterY
+
+                    If Keyboard(Keys.E) Then
+                        Attack.URL = My.Application.Info.DirectoryPath & "\Music\技能.mp3" '選擇路徑
+                        Attack.settings.setMode("loop", False) '設定是否循環
+                        Attack.controls.play() '播放
+                        CharacterHarmDamage = 15
+
+                        If BulletDirection Then
+                            BulletImg = My.Resources.Game.AbilityL
+                        Else
+                            BulletImg = My.Resources.Game.AbilityR
+                        End If
+
+                        BulletWidth = 41
+                        BulletHeight = 33
+
+                        ShootGap = 1250
+                        CDBarFull = 1250
+
+                    ElseIf MousePressed Then
+                        Attack.URL = My.Application.Info.DirectoryPath & "\Music\射出.mp3" '選擇路徑
+                        Attack.settings.setMode("loop", False) '設定是否循環
+                        Attack.controls.play() '播放
+                        CharacterHarmDamage = 3
+
+                        If BulletDirection Then
+                            BulletImg = My.Resources.Game.BulletL
+                        Else
+                            BulletImg = My.Resources.Game.BulletR
+                        End If
+
+                        BulletWidth = 12
+                        BulletHeight = 24
+
+                        ShootGap = 250
+                        CDBarFull = 250
+
+                    End If
                 End If
             Else
                 HadShot = False
@@ -532,27 +604,11 @@ Public Class Form1
                 End If
             End If
 
-            If Keyboard(Keys.X) Then
-                CanShoot = True
-            End If
-
             If CanShoot = False Then
                 If BulletDirection Then
-                    BulletImg = My.Resources.Game.BulletL
                     BulletX -= BulletSpeed
                 Else
-                    BulletImg = My.Resources.Game.BulletR
                     BulletX += BulletSpeed
-                End If
-
-                If BulletDirection Then
-                    If BulletX < MonsterX And BulletY - 0.5 < MonsterY And MonsterY < BulletY + 0.5 + 0.5 Then
-                        CanShoot = True
-                    End If
-                Else
-                    If BulletX > MonsterX And BulletY - 0.5 < MonsterY And MonsterY < BulletY + 0.5 + 0.5 Then
-                        CanShoot = True
-                    End If
                 End If
 
                 BulletDetectY = Math.Floor(Map_Height - BulletY - 1)
@@ -575,41 +631,30 @@ Public Class Form1
                 End If
 
                 BulletBox = New RectangleF(x + CameraX + BulletX * 48 * ScaleRatio + 5 * ScaleRatio,
-                                                       y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - BulletY) * 48 * ScaleRatio - 24 * ScaleRatio - 10 * ScaleRatio,
-                                                       12 * ScaleRatio, 24 * ScaleRatio)
+                                           y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - BulletY) * 48 * ScaleRatio - 24 * ScaleRatio - 10 * ScaleRatio,
+                                           BulletWidth * ScaleRatio, BulletHeight * ScaleRatio)
                 e.Graphics.DrawImage(BulletImg, BulletBox)
             End If
         End Sub
 
-        Public Sub MonsterAppearanceUpdate(id As Integer)
-            Select Case id
-                Case 0
-                    MonsterImg = My.Resources.Game.SlimeL
-                    MonsterWidth = 63
-                    MonsterHeight = 84
-                Case 1
-                    MonsterImg = My.Resources.Game.SlimeR
-                    MonsterWidth = 63
-                    MonsterHeight = 84
-            End Select
-        End Sub
+        Public Sub DrawGame(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean, volume As Integer)
+            Attack.settings.volume = volume
 
-        Public Sub DrawGame(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean)
             '畫背景
             e.Graphics.DrawImage(BG, New RectangleF(x, y, width, height))
 
             '偵測角色偏移以偏移鏡頭
             If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX > x + width / 2 And x + width < x + Map_Width * 48 * ScaleRatio + CameraX Then
-                CameraX -= 3 * ScaleRatio
+                CameraX -= CameraSpeed * ScaleRatio
             End If
             If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX < x + width / 2 And x > x + CameraX Then
-                CameraX += 3 * ScaleRatio
+                CameraX += CameraSpeed * ScaleRatio
             End If
             If y + height - CharacterY * 48 * ScaleRatio - CharacterBox.Height / 2 + CameraY < y + height / 2 And y > y + height - Map_Height * 48 * ScaleRatio + CameraY Then
-                CameraY += 3 * ScaleRatio
+                CameraY += CameraSpeed * ScaleRatio
             End If
             If y + height - CharacterY * 48 * ScaleRatio - CharacterBox.Height / 2 + CameraY > y + height / 2 And y + height < y + height + CameraY Then
-                CameraY -= 3 * ScaleRatio
+                CameraY -= CameraSpeed * ScaleRatio
             End If
 
             '畫地圖
@@ -617,14 +662,8 @@ Public Class Form1
             MapDy = height - Map_Height * 48 * ScaleRatio
             For i = 0 To Map_Height - 1
                 For j = 0 To Map_Width - 1
-                    If Map(i, j) > 0 And Not Map(i, j) >= 100 Then
+                    If Map(i, j) <> 0 Then
                         e.Graphics.DrawImage(Map_Texture(Map(i, j)), New RectangleF(x + MapDx + CameraX, y + MapDy + CameraY, 48 * ScaleRatio, 48 * ScaleRatio))
-                    End If
-                    If Map(i, j) >= 100 Then
-                        MonsterAppearanceUpdate(Map(i, j) - 100)
-                        MonsterX = j
-                        MonsterY = Map_Height - i
-                        e.Graphics.DrawImage(MonsterImg, New RectangleF(x + MapDx + CameraX, y + MapDy + CameraY - MonsterHeight * ScaleRatio + 48 * ScaleRatio, MonsterWidth * ScaleRatio, MonsterHeight * ScaleRatio))
                     End If
 
                     MapDx += 48 * ScaleRatio
@@ -633,7 +672,8 @@ Public Class Form1
                 MapDy += 48 * ScaleRatio
             Next
 
-            '畫角色
+            '角色部分--------------------------------------------------------------------
+            '角色向右
             If Keyboard(Keys.D) Then
                 CharacterDirection = True
                 CharacterX += Character_Speed
@@ -642,7 +682,7 @@ Public Class Form1
                     CharacterX = Math.Floor(CharacterX) + (1 - CharacterHitBoxWidth - 0.000001)
                 End If
             End If
-
+            '角色向左
             If Keyboard(Keys.A) Then
                 CharacterDirection = False
                 CharacterX -= Character_Speed
@@ -651,20 +691,20 @@ Public Class Form1
                     CharacterX = Math.Floor(CharacterX) + 1
                 End If
             End If
-
+            '角色跳
             If Keyboard(Keys.Space) And Character_Jump = False And Character_CanJump And Now.Ticks() / 10000 - Last_Jump > Jump_Delay Then
                 CharacterYv = Character_Jump_Speed
                 Character_Jump = True
                 Character_CanJump = False
                 Last_Jump = Now.Ticks() / 10000
             End If
-
             If Not Keyboard(Keys.Space) Then
                 Character_CanJump = True
             End If
 
+            '角色重力
             CharacterYv -= G
-            CharacterY += CharacterYv * (Now.Ticks() / 10000 - LastUpdate)
+            CharacterY += CharacterYv * 5
             Detect()
             If CharacterTop And Character_Jump Then
                 CharacterY = Math.Floor(CharacterY + CharacterHitBoxHeight) - CharacterHitBoxHeight
@@ -676,6 +716,7 @@ Public Class Form1
                 Character_Jump = False
             End If
 
+            '角色走路動畫
             If Now.Ticks() / 10000 - CharacterMoveAniTimer > 100 Then
                 CharacterMoveAniTimer = Now.Ticks() / 10000
                 CharacterMoveAni += 1
@@ -684,33 +725,343 @@ Public Class Form1
                 End If
             End If
 
+            '偵測滑鼠與鍵盤動作，以更換角色動作與畫子彈
             CharacterImgChange(e, Keyboard, Mouse, MousePressed, ScaleRatio)
 
+            '設定角色要畫的地方
             CharacterBox = New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio - CharacterAttackWidth * ScaleRatio,
                                           y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio,
                                           CharacterWidth * ScaleRatio,
                                           CharacterHeight * ScaleRatio)
 
+            '畫角色
             e.Graphics.DrawImage(CharacterImg, CharacterBox)
 
             '畫角色血量
             e.Graphics.FillRectangle(Brushes.White, New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio + 5 * ScaleRatio,
-                                                                   y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio - 10 * ScaleRatio,
+                                                                   y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio - 15 * ScaleRatio,
                                                                    37 * ScaleRatio,
                                                                    5 * ScaleRatio))
             e.Graphics.FillRectangle(Brushes.Red, New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio + 5 * ScaleRatio,
-                                                                   y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio - 10 * ScaleRatio,
-                                                                   37 * ScaleRatio * CharacterHealth / 100,
+                                                                   y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio - 15 * ScaleRatio,
+                                                                   37 * ScaleRatio * CharacterHealth / CharacterMaxHealth,
                                                                    5 * ScaleRatio))
 
-            LastUpdate = Now.Ticks() / 10000
+            If ShowDamage Then
+                If Now.Ticks() / 10000 - LastShowDamage > ShowDamageTime Then
+                    ShowDamage = False
+                Else
+                    DamageText.point.X = x + CameraX + CharacterX * 48 * ScaleRatio - CharacterAttackWidth * ScaleRatio
+                    DamageText.point.Y = y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio
+                    DamageText.Draw(CStr(Damage), e, myfont, ScaleRatio)
+                End If
+            End If
+
+            '畫CD條
+            If ShootGap / 1000 - (Now.Ticks() / 10000 - LastShoot) / 1000 <= 0 Then
+                CDShowValue = 0
+            Else
+                CDShowValue = ShootGap / 1000 - (Now.Ticks() / 10000 - LastShoot) / 1000
+            End If
+            e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(200, 255, 255, 255)), New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio + 5 * ScaleRatio,
+                                                                                                        y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio - 7.5 * ScaleRatio,
+                                                                                                        37 * ScaleRatio * (CDShowValue / (CDBarFull / 1000)),
+                                                                                                        5 * ScaleRatio))
+        End Sub
+    End Class
+
+    Public Class Monster
+        '遊戲畫面基本設定--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Public x As Double
+        Public y As Double
+        Public width As Double
+        Public height As Double
+        Private Const G As Double = 9.80665 / 1000 '重力加速度常數 (格/ms^2)
+        Private CameraX As Double = 0
+        Private CameraY As Double = 0
+
+        '遊戲音效的撥放器--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Public Hit As New WMPLib.WindowsMediaPlayer
+        Public CharacterBeenHit As New WMPLib.WindowsMediaPlayer
+
+        '角色--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Public CharacterX As Double
+        Public CharacterY As Double
+        Public CharacterShootX As Double
+        Public CharacterShootY As Double
+
+        '地圖--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Public Map As Integer(,)
+        Public Map_Width As Integer
+        Public Map_Height As Integer
+
+        '所有角色的偵測--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Private WallDetectX0 As Integer
+        Private WallDetectX08 As Integer
+        Private WallDetectY0 As Integer
+        Private WallDetectY09 As Integer
+        Private WallDetectY18 As Integer
+
+        '子彈--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Private BulletDirection As Boolean = False 'False = 右，True = 左
+        Public BulletX As Double
+        Public BulletY As Double
+
+        '受傷數值文字--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        Public myfont As PrivateFontCollection
+        Private Damage As Double
+        Private DamageText As New MyTextBox With {.font = "Cubic11", .font_size = 24, .color = Color.FromArgb(244, 67, 54), .Align = "Center", .LineAlign = "Center"}
+        Private ShowDamage As Boolean = False
+        Private LastShowDamage As Long = 0
+
+        '怪物---------------------------------------------------------------------------------------------------------------------------------------------------
+        Public MonsterImg As Bitmap = My.Resources.Game.SlimeL
+        Public LeftId As Integer = 0
+        Public RightId As Integer = 1
+        Public Monster_Texture As Bitmap() = {My.Resources.Game.SlimeL, My.Resources.Game.SlimeR}
+        Public MonsterDirection As Boolean = False 'False = 右，True = 左
+        Public Monster_Speed As Double = 0.03 '(格/每次更新)
+        Public MonsterBox As RectangleF
+        Public MonsterX As Double
+        Public MonsterY As Double
+        Public MonsterYv As Double = 0
+        Public MonsterWidth As Double = 63
+        Public MonsterHeight As Double = 84
+        Public MonsterHealth As Double = 100
+        Public MonsterMaxHealth As Double = 100
+        Public MonsterDetectArea As Double = 3.5 '格
+
+        Private CanDamageCharacter As Boolean = True
+        Private LastDamageCharacter As Long
+        Private DamageTimeGap As Long = 1000 'ms
+
+        Public MonsterLeft As Boolean
+        Public MonsterRight As Boolean
+        Public MonsterTop As Boolean
+        Public MonsterBottom As Boolean
+
+        Public Sub SyncWith(ByRef Game As Game)
+            With Game
+                x = .x
+                y = .y
+                width = .width
+                height = .height
+                CameraX = .CameraX
+                CameraY = .CameraY
+                CharacterX = .CharacterX
+                CharacterY = .CharacterY
+                CharacterShootX = .CharacterShootX
+                CharacterShootY = .CharacterShootY
+                Map = .Map
+                Map_Width = .Map_Width
+                Map_Height = .Map_Height
+                BulletDirection = .BulletDirection
+                BulletX = .BulletX
+                BulletY = .BulletY
+            End With
+        End Sub
+
+        Public Sub MonsterDetect()
+            WallDetectX0 = Math.Floor(MonsterX)
+            WallDetectX08 = Math.Floor(MonsterX + MonsterWidth / 48 - 0.000001)
+            WallDetectY0 = Math.Floor(Map_Height - (MonsterY + 0.000001))
+            WallDetectY09 = Math.Floor(Map_Height - (MonsterY + MonsterHeight / 48 / 2))
+            WallDetectY18 = Math.Floor(Map_Height - (MonsterY + MonsterHeight / 48 - 0.000001))
+
+            If WallDetectX0 < 0 Then
+                WallDetectX0 = 0
+            ElseIf WallDetectX0 > Map_Width - 1 Then
+                WallDetectX0 = Map_Width - 1
+            End If
+
+            If WallDetectX08 < 0 Then
+                WallDetectX08 = 0
+            ElseIf WallDetectX08 > Map_Width - 1 Then
+                WallDetectX08 = Map_Width - 1
+            End If
+
+            If WallDetectY0 <= 0 Then
+                WallDetectY0 = 0
+            ElseIf WallDetectY0 > Map_Height - 1 Then
+                WallDetectY0 = Map_Height - 1
+            End If
+
+            If WallDetectY09 <= 0 Then
+                WallDetectY09 = 0
+            ElseIf WallDetectY09 > Map_Height - 1 Then
+                WallDetectY09 = Map_Height - 1
+            End If
+
+            If WallDetectY18 <= 0 Then
+                WallDetectY18 = 0
+            ElseIf WallDetectY18 > Map_Height - 1 Then
+                WallDetectY18 = Map_Height - 1
+            End If
+
+            MonsterLeft = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY09, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX0) <> 0) And Math.Floor(MonsterX) < MonsterX And MonsterX < Math.Floor(MonsterX) + 1
+            MonsterRight = (Map(WallDetectY0, WallDetectX08) <> 0 Or Map(WallDetectY09, WallDetectX08) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(MonsterX + MonsterWidth / 48) < MonsterX + MonsterWidth / 48 And MonsterX + MonsterWidth / 48 < Math.Ceiling(MonsterX + MonsterWidth / 48)
+            MonsterTop = (Map(WallDetectY18, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(MonsterY + MonsterHeight / 48) < MonsterY + MonsterHeight / 48 And MonsterY + MonsterHeight / 48 < Math.Floor(MonsterY + MonsterHeight / 48) + 1
+            MonsterBottom = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY0, WallDetectX08) <> 0) And Math.Floor(MonsterY) < MonsterY And MonsterY < Math.Floor(MonsterY) + 1
+        End Sub
+
+        Public Sub MonsterReset(LId As Integer, RId As Integer, x As Double, y As Double)
+            LeftId = LId
+            RightId = RId
+            MonsterAppearanceUpdate(RId)
+            MonsterHealth = MonsterMaxHealth
+            MonsterX = x
+            MonsterY = y
+        End Sub
+
+        Private Sub MonsterAppearanceUpdate(id As Integer)
+            Select Case id
+                Case 0
+                    MonsterImg = My.Resources.Game.SlimeL
+                    MonsterWidth = 63
+                    MonsterHeight = 84
+                    MonsterMaxHealth = 100
+                    Monster_Speed = 0.03
+                    MonsterDetectArea = 3.5
+                    DamageTimeGap = 1000
+                Case 1
+                    MonsterImg = My.Resources.Game.SlimeR
+                    MonsterWidth = 63
+                    MonsterHeight = 84
+                    MonsterMaxHealth = 100
+                    Monster_Speed = 0.03
+                    MonsterDetectArea = 3.5
+                    DamageTimeGap = 1000
+            End Select
+        End Sub
+
+        Public Sub Draw(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef CanShoot As Boolean, ByRef CharacterHealth As Double, ByRef CharacterDamage As Double, ByRef CharacterShowDamage As Boolean, ByRef CharacterLastShowDamage As Long, CharacterHarmDamage As Double, volume As Integer)
+            CharacterBeenHit.settings.volume = volume
+            Hit.settings.volume = volume
+
+            If MonsterHealth > 0 Then
+                '怪物擋右牆
+                If CharacterX > MonsterX And CharacterX - MonsterX < MonsterDetectArea Then
+                    MonsterDirection = True
+                    MonsterX += Monster_Speed
+                    MonsterAppearanceUpdate(RightId)
+                    MonsterDetect()
+                    If MonsterRight Then
+                        MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
+                    End If
+                End If
+
+                '怪物擋左牆
+                If CharacterX < MonsterX And MonsterX - CharacterX < MonsterDetectArea Then
+                    MonsterDirection = False
+                    MonsterX -= Monster_Speed
+                    MonsterAppearanceUpdate(LeftId)
+                    MonsterDetect()
+                    If MonsterLeft Then
+                        MonsterX = Math.Floor(MonsterX) + 1
+                    End If
+                End If
+
+                '怪物重力
+                MonsterYv -= G
+                MonsterY += MonsterYv * 5
+                MonsterDetect()
+                If MonsterTop Then
+                    MonsterY = Math.Floor(MonsterY + MonsterHeight / 48) - MonsterHeight / 48
+                End If
+                MonsterDetect()
+                If MonsterBottom Then
+                    MonsterY = Math.Floor(MonsterY) + 1
+                    MonsterYv = 0
+                End If
+
+                '設定怪物要畫的地方
+                MonsterBox = New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio,
+                                                y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio,
+                                                MonsterWidth * ScaleRatio,
+                                                MonsterHeight * ScaleRatio)
+
+                '畫怪物
+                e.Graphics.DrawImage(MonsterImg, MonsterBox)
+
+                '偵測子彈是否打到怪物
+                If CanShoot = False Then
+                    If BulletDirection = False And CharacterShootX < MonsterX And
+                       BulletX > MonsterX And
+                       ((MonsterY < BulletY And BulletY < MonsterY + MonsterHeight / 48) Or (MonsterY < BulletY + 0.5 And BulletY + 0.5 < MonsterY + MonsterHeight / 48)) Then
+
+                        Damage = CharacterHarmDamage
+                        MonsterHealth -= Damage
+                        LastShowDamage = Now.Ticks() / 10000
+                        ShowDamage = True
+
+                        Hit.URL = My.Application.Info.DirectoryPath & "\Music\打到.mp3" '選擇路徑
+                        Hit.settings.setMode("loop", False) '設定是否循環
+                        Hit.controls.play() '播放
+
+                        CanShoot = True
+                    ElseIf BulletDirection = True And CharacterShootX > MonsterX And
+                           BulletX < MonsterX + MonsterWidth / 48 And
+                           ((MonsterY < BulletY And BulletY < MonsterY + MonsterHeight / 48) Or (MonsterY < BulletY + 0.5 And BulletY + 0.5 < MonsterY + MonsterHeight / 48)) Then
+
+                        Damage = CharacterHarmDamage
+                        MonsterHealth -= Damage
+                        LastShowDamage = Now.Ticks() / 10000
+                        ShowDamage = True
+
+                        Hit.URL = My.Application.Info.DirectoryPath & "\Music\打到.mp3" '選擇路徑
+                        Hit.settings.setMode("loop", False) '設定是否循環
+                        Hit.controls.play() '播放
+
+                        CanShoot = True
+                    End If
+                End If
+
+                '畫怪物血量
+                e.Graphics.FillRectangle(Brushes.White, New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio + 5 * ScaleRatio,
+                                                                           y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio - 10 * ScaleRatio,
+                                                                           MonsterWidth * ScaleRatio,
+                                                                           5 * ScaleRatio))
+                e.Graphics.FillRectangle(Brushes.Red, New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio + 5 * ScaleRatio,
+                                                                           y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio - 10 * ScaleRatio,
+                                                                           MonsterWidth * ScaleRatio * MonsterHealth / MonsterMaxHealth,
+                                                                           5 * ScaleRatio))
+                '顯示傷害
+                If ShowDamage Then
+                    If Now.Ticks() / 10000 - LastShowDamage > ShowDamageTime Then
+                        ShowDamage = False
+                    Else
+                        DamageText.point.X = x + BulletX * ScaleRatio * 48 + CameraX
+                        DamageText.point.Y = y + (Map_Height - BulletY - 2.5) * 48 * ScaleRatio + CameraY
+                        DamageText.Draw(CStr(Damage), e, myfont, ScaleRatio)
+                    End If
+                End If
+
+                '傷害角色
+                If CanDamageCharacter And CharacterX - 0.2 < MonsterX + MonsterWidth / 48 / 2 And MonsterX + MonsterWidth / 48 / 2 < CharacterX + 1 And (CharacterY < MonsterY + MonsterHeight / 48 / 2 And MonsterY + MonsterHeight / 48 / 2 < CharacterY + 1.8) Then
+                    CharacterDamage = 0
+                    CharacterHealth -= CharacterDamage
+                    CharacterShowDamage = True
+                    CharacterLastShowDamage = Now.Ticks() / 10000
+                    LastDamageCharacter = Now.Ticks() / 10000
+
+                    CharacterBeenHit.URL = My.Application.Info.DirectoryPath & "\Music\被打.mp3" '選擇路徑
+                    CharacterBeenHit.settings.setMode("loop", False) '設定是否循環
+                    CharacterBeenHit.controls.play() '播放
+
+                    CanDamageCharacter = False
+                End If
+
+                If Now.Ticks() / 10000 - LastDamageCharacter > DamageTimeGap Then
+                    CanDamageCharacter = True
+                End If
+            End If
         End Sub
     End Class
 
     '快速調整設定區
     Dim State As String = "Start"
 
-    Const Version As String = "Insider Preview 1.25"
+    Const Version As String = "Insider Preview 1.3"
     Const Copyright As String = "III Studio 製作"
 
     Const DefaultWidth As Integer = 800 '預設的寬度
@@ -720,6 +1071,7 @@ Public Class Form1
     Const OpeningDimSpeed As Double = 7.5 '開場動畫淡入淡出的速度
     Const OpeningGapSpeed As Double = 1000 '開場動畫淡入淡出的速度 (ms)
     Const OpeningSpeed As Integer = 2000 '每個開場動畫持續的時間 (ms)
+    Const ShowDamageTime As Double = 250 '顯示傷害數值的時間 (ms)
 
     '初始化Timer
     Dim ScreenRefresh As New Timer(1)
@@ -800,7 +1152,7 @@ Public Class Form1
                                         {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
                                         {1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1},
                                         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
-    Dim DemoGame As New Game With {.Map = HowToPlay1_Map, .Map_Width = 16, .Map_Height = 8, .BG = My.Resources.HowToPlay.Sky, .SoundEffect = SoundEffect}
+    Dim DemoGame As New Game With {.Map = HowToPlay1_Map, .Map_Width = 16, .Map_Height = 8, .BG = My.Resources.HowToPlay.Sky}
 
     'HowToPlay2初始化
     Dim HowToPlay2_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -809,8 +1161,9 @@ Public Class Form1
                                         {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
                                         {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
                                         {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
                                         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
+    Dim DemoMonster As New Monster With {.MonsterX = 9, .MonsterY = 4}
 
     'Setting 初始化
     Dim SettingText As New MyTextBox With {.font = "Cubic11", .font_size = 30.9, .color = Color.White}
@@ -829,7 +1182,6 @@ Public Class Form1
     Dim ShowText As New MyTextBox With {.font = "Cubic11", .font_size = 30, .color = Color.White, .LineAlign = "Center"}
     Dim NowShowText As String
     Dim DimScreen As Integer = 0
-
 
     Private Sub Form1_Paint(sender As Object, e As PaintEventArgs) Handles MyBase.Paint
         If BGisOn Then
@@ -963,10 +1315,8 @@ Public Class Form1
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay1
                     BGisOn = False
                     State = "HowToPlay1"
-                    DemoGame.CharacterX = 1.1
-                    DemoGame.CharacterY = 1
-                    DemoGame.Map_Width = 16
-                    DemoGame.Map_Height = 8
+                    DemoGame.CharacterReset(1.1, 1)
+                    DemoGame.MapSetting(16, 8)
                     DemoGame.CameraReset()
                     DemoGame.Map = HowToPlay1_Map
                 End If
@@ -984,8 +1334,7 @@ Public Class Form1
 
             Case "HowToPlay1"
                 DemoGame.BoxSetting(MyWidth / 2 - 335 * ScaleRatio, MyHeight / 2 - 112 * ScaleRatio, 670 * ScaleRatio, 287 * ScaleRatio)
-                DemoGame.LastUpdate = Now.Ticks() / 10000
-                DemoGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed)
+                DemoGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed, SoundEffect.settings.volume)
 
                 HowToPlay_Img.BoxSetting(MyWidth / 2 - 702 / 2 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, 702 * ScaleRatio, 382.811 * ScaleRatio)
                 HowToPlay_Img.Draw(e)
@@ -1008,18 +1357,19 @@ Public Class Form1
                 If NextPageButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay2
                     State = "HowToPlay2"
-                    DemoGame.CharacterX = 1.1
-                    DemoGame.CharacterY = 1
-                    DemoGame.Map_Width = 14
-                    DemoGame.Map_Height = 8
+                    DemoGame.CharacterReset(1.1, 1)
+                    DemoGame.MapSetting(14, 8)
                     DemoGame.CameraReset()
                     DemoGame.Map = HowToPlay2_Map
+                    DemoMonster.MonsterReset(0, 1, 9, 1)
                 End If
 
             Case "HowToPlay2"
                 DemoGame.BoxSetting(MyWidth / 2 - 335 * ScaleRatio, MyHeight / 2 - 112 * ScaleRatio, 670 * ScaleRatio, 287 * ScaleRatio)
-                DemoGame.LastUpdate = Now.Ticks() / 10000
-                DemoGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed)
+                DemoGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed, SoundEffect.settings.volume)
+
+                DemoMonster.SyncWith(DemoGame)
+                DemoMonster.Draw(e, ScaleRatio, DemoGame.CanShoot, DemoGame.CharacterHealth, DemoGame.Damage, DemoGame.ShowDamage, DemoGame.LastShowDamage, DemoGame.CharacterHarmDamage, SoundEffect.settings.volume)
 
                 HowToPlay_Img.BoxSetting(MyWidth / 2 - 702 / 2 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, 702 * ScaleRatio, 382.811 * ScaleRatio)
                 HowToPlay_Img.Draw(e)
@@ -1162,6 +1512,9 @@ Public Class Form1
         For i = 0 To Keyboard.Length - 1
             Keyboard(i) = False
         Next
+
+        DemoGame.myfont = myfont
+        DemoMonster.myfont = myfont
     End Sub
 
     Private Sub Form1_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize

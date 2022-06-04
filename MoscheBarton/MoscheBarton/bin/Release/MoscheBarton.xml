@@ -166,7 +166,27 @@ MoscheBarton
   使用這個強類型資源類別的資源查閱。
 </summary>
 </member>
-<member name="P:MoscheBarton.My.Resources.Game.Bullet">
+<member name="P:MoscheBarton.My.Resources.Game.AbilityL">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.AbilityR">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.BulletL">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.BulletR">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.CDBG">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>

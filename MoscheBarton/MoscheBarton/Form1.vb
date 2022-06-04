@@ -1066,7 +1066,7 @@ Public Class Form1
 
     Const DefaultWidth As Integer = 800 '預設的寬度
     Const DefaultHeight As Integer = 450 '預設的高度
-    Const DefaultDebugPanelOn As Boolean = True '預設除錯面板開啟狀態
+    Const DefaultDebugPanelOn As Boolean = False '預設除錯面板開啟狀態
 
     Const OpeningDimSpeed As Double = 7.5 '開場動畫淡入淡出的速度
     Const OpeningGapSpeed As Double = 1000 '開場動畫淡入淡出的速度 (ms)

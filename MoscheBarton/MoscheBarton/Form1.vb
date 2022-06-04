@@ -1377,7 +1377,7 @@ Public Class Form1
                 HowToPlay_Text.point.Y = MyHeight / 2 - 167 * ScaleRatio
 
                 HowToPlay_Text.point.X = MyWidth / 2 - 330 * ScaleRatio
-                HowToPlay_Text.Draw("按下右鍵攻擊敵人，", e, myfont, ScaleRatio)
+                HowToPlay_Text.Draw("按下滑鼠攻擊敵人，", e, myfont, ScaleRatio)
                 HowToPlay_Text.point.X = MyWidth / 2 - 4 * ScaleRatio
                 HowToPlay_Text.Draw("釋放技能", e, myfont, ScaleRatio)
 

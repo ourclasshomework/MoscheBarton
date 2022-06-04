@@ -23,3 +23,4 @@ D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Debug\MoscheBarton.
 D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Debug\MoscheBarton.Game.resources
 D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Debug\MoscheBarton.Setting.resources
 D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Debug\MoscheBarton.Loading.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Debug\Music\射出.mp3

@@ -23,3 +23,4 @@ D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarto
 D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.xml
 D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.pdb
 D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Release\MoscheBarton.Loading.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Release\Music\射出.mp3

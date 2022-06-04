@@ -201,6 +201,10 @@
     <Content Include="Music\MenuBGM.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Music\射出.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Music\技能.mp3" />
     <Content Include="Music\開場配音.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -99,9 +99,10 @@ Public Class Form1
         Public Image As Bitmap '按鈕圖片
         Public PressedImage As Bitmap '壓下的按鈕的圖片
         Public Activated As Boolean = False '是否被按下過，預設是 False
+        Public Player As WMPLib.WindowsMediaPlayer
 
         '繪製按鈕
-        Public Function Draw(ByRef e As PaintEventArgs, Mouse As Point, MousePressed As Boolean, ByRef Player As WMPLib.WindowsMediaPlayer, Volume As Double) As Integer
+        Public Function Draw(ByRef e As PaintEventArgs, Mouse As Point, MousePressed As Boolean, Volume As Double) As Integer
             If Box.X <= Mouse.X And Mouse.X <= Box.X + Box.Width And Box.Y <= Mouse.Y And Mouse.Y <= Box.Y + Box.Height Then '游標在按鈕上
                 If MousePressed Then '滑鼠按下
                     Activated = True '曾按過 = True
@@ -281,6 +282,8 @@ Public Class Form1
         Public CameraX As Double = 0
         Public CameraY As Double = 0
 
+        Public SoundEffect As WMPLib.WindowsMediaPlayer
+
         Private WallDetectX0 As Integer
         Private WallDetectX08 As Integer
         Private WallDetectY0 As Integer
@@ -300,6 +303,7 @@ Public Class Form1
 
         Private CharacterImg As Bitmap = My.Resources.Game.CRNN
         Private CharacterAttackWidth As Double = 0
+        Public CharacterHealth As Double = 80
         Private CharacterWidth As Double = 27
         Private CharacterHeight As Double = 84
         Private CharacterHitBoxWidth As Double = 27 / 48
@@ -314,12 +318,33 @@ Public Class Form1
         Private Character_Speed As Double = 0.075 '(格/每次更新)
         Private CharacterYv As Double = 0
 
+        Private BulletImg As Bitmap = My.Resources.Game.BulletR
+        Public BulletBox As RectangleF
+        Public BulletX As Double
+        Public BulletY As Double
+        Private BulletDetectX As Integer
+        Private BulletDetectY As Integer
+        Public Const BulletSpeed As Double = 0.3 '格/每次更新
+        Public BulletDirection As Boolean = False 'False = 右，True = 左
+        Public CanShoot As Boolean = True
+        Public LastShoot As Long = 0
+        Public Const ShootGap As Long = 250 'ms
+        Private HadShot As Boolean = False
 
         Private Character_Jump As Boolean = False
         Private Character_CanJump As Boolean = True
         Private Const Character_Jump_Speed As Double = 0.075 '(格/ms)
         Private Jump_Delay As Integer = 350 '(ms)
         Private Last_Jump As Long = 0
+
+        Private MonsterImg As Bitmap = My.Resources.Game.SlimeL
+        Private Monster_Texture As Bitmap() = {My.Resources.Game.SlimeL, My.Resources.Game.SlimeR}
+        Public MonsterBox As RectangleF
+        Public MonsterX As Double = 0
+        Public MonsterY As Double = 0
+        Public MonsterWidth As Double = 63
+        Public MonsterHeight As Double = 84
+        Public MonsterType As Integer = 0
 
         Public Sub CameraReset()
             CameraX = 0
@@ -370,13 +395,13 @@ Public Class Form1
                 WallDetectY18 = Map_Height - 1
             End If
 
-            CharacterLeft = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY09, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX0) <> 0) And Math.Floor(CharacterX) < CharacterX And CharacterX < Math.Floor(CharacterX) + 1
-            CharacterRight = (Map(WallDetectY0, WallDetectX08) <> 0 Or Map(WallDetectY09, WallDetectX08) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(CharacterX + CharacterHitBoxWidth) < CharacterX + CharacterHitBoxWidth And CharacterX + CharacterHitBoxWidth < Math.Floor(CharacterX + CharacterHitBoxWidth) + 1
-            CharacterTop = (Map(WallDetectY18, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Math.Floor(CharacterY + CharacterHitBoxHeight) < CharacterY + CharacterHitBoxHeight And CharacterY + CharacterHitBoxHeight < Math.Floor(CharacterY + CharacterHitBoxHeight) + 1
-            CharacterBottom = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY0, WallDetectX08) <> 0) And Math.Floor(CharacterY) < CharacterY And CharacterY < Math.Floor(CharacterY) + 1
+            CharacterLeft = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY09, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX0) <> 0) And Not (Map(WallDetectY0, WallDetectX0) >= 100 Or Map(WallDetectY09, WallDetectX0) >= 100 Or Map(WallDetectY18, WallDetectX0) >= 100) And Math.Floor(CharacterX) < CharacterX And CharacterX < Math.Floor(CharacterX) + 1
+            CharacterRight = (Map(WallDetectY0, WallDetectX08) <> 0 Or Map(WallDetectY09, WallDetectX08) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Not (Map(WallDetectY0, WallDetectX08) >= 100 Or Map(WallDetectY09, WallDetectX08) >= 100 Or Map(WallDetectY18, WallDetectX08) >= 100) And Math.Floor(CharacterX + CharacterHitBoxWidth) < CharacterX + CharacterHitBoxWidth And CharacterX + CharacterHitBoxWidth < Math.Floor(CharacterX + CharacterHitBoxWidth) + 1
+            CharacterTop = (Map(WallDetectY18, WallDetectX0) <> 0 Or Map(WallDetectY18, WallDetectX08) <> 0) And Not (Map(WallDetectY18, WallDetectX0) >= 100 Or Map(WallDetectY18, WallDetectX08) >= 100) And Math.Floor(CharacterY + CharacterHitBoxHeight) < CharacterY + CharacterHitBoxHeight And CharacterY + CharacterHitBoxHeight < Math.Floor(CharacterY + CharacterHitBoxHeight) + 1
+            CharacterBottom = (Map(WallDetectY0, WallDetectX0) <> 0 Or Map(WallDetectY0, WallDetectX08) <> 0) And Not (Map(WallDetectY0, WallDetectX0) >= 100 Or Map(WallDetectY0, WallDetectX08) >= 100) And Math.Floor(CharacterY) < CharacterY And CharacterY < Math.Floor(CharacterY) + 1
         End Sub
 
-        Public Sub CharacterImgChange(ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean)
+        Public Sub CharacterImgChange(ByRef e As PaintEventArgs, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean, ByRef ScaleRatio As Double)
             If MousePressed Then
                 If Keyboard(Keys.A) Then
                     CharacterWidth = 67.0383
@@ -393,6 +418,10 @@ Public Class Form1
                         Case 2
                             CharacterImg = My.Resources.Game.CLAW2
                     End Select
+
+                    If CanShoot Then
+                        BulletDirection = True
+                    End If
                 End If
 
                 If Keyboard(Keys.D) Then
@@ -410,6 +439,10 @@ Public Class Form1
                         Case 2
                             CharacterImg = My.Resources.Game.CRAW2
                     End Select
+
+                    If CanShoot Then
+                        BulletDirection = False
+                    End If
                 End If
 
 
@@ -422,12 +455,34 @@ Public Class Form1
                     If CharacterDirection Then
                         CharacterAttackWidth = -12.1249
                         CharacterImg = My.Resources.Game.CRAN
+                        If CanShoot Then
+                            BulletDirection = False
+                        End If
                     Else
                         CharacterAttackWidth = 31.0383 - 12.1249
                         CharacterImg = My.Resources.Game.CLAN
+                        If CanShoot Then
+                            BulletDirection = True
+                        End If
                     End If
                 End If
+
+                If CanShoot And Now.Ticks() / 10000 - LastShoot > ShootGap And Not HadShot Then
+                    LastShoot = Now.Ticks() / 10000
+                    If BulletDirection Then
+                        BulletX = CharacterX
+                    Else
+                        BulletX = CharacterX + 1.35
+                    End If
+                    BulletY = CharacterY + 0.9
+                    CanShoot = False
+                    HadShot = True
+                    SoundEffect.URL = My.Application.Info.DirectoryPath & "\Music\射出.mp3" '選擇路徑
+                    SoundEffect.settings.setMode("loop", False) '設定是否循環
+                    SoundEffect.controls.play() '播放
+                End If
             Else
+                HadShot = False
                 If Keyboard(Keys.A) Then
                     CharacterWidth = 39.1249
                     CharacterHeight = 84.5916
@@ -476,12 +531,74 @@ Public Class Form1
                     End If
                 End If
             End If
+
+            If Keyboard(Keys.X) Then
+                CanShoot = True
+            End If
+
+            If CanShoot = False Then
+                If BulletDirection Then
+                    BulletImg = My.Resources.Game.BulletL
+                    BulletX -= BulletSpeed
+                Else
+                    BulletImg = My.Resources.Game.BulletR
+                    BulletX += BulletSpeed
+                End If
+
+                If BulletDirection Then
+                    If BulletX < MonsterX And BulletY - 0.5 < MonsterY And MonsterY < BulletY + 0.5 + 0.5 Then
+                        CanShoot = True
+                    End If
+                Else
+                    If BulletX > MonsterX And BulletY - 0.5 < MonsterY And MonsterY < BulletY + 0.5 + 0.5 Then
+                        CanShoot = True
+                    End If
+                End If
+
+                BulletDetectY = Math.Floor(Map_Height - BulletY - 1)
+                BulletDetectX = Math.Floor(BulletX + 0.25)
+                If BulletDetectY >= Map_Height Then
+                    BulletDetectY = Map_Height - 1
+                End If
+                If BulletDetectY < 0 Then
+                    BulletDetectY = 0
+                End If
+                If BulletDetectX >= Map_Width Then
+                    BulletDetectX = Map_Width - 1
+                End If
+                If BulletDetectX < 0 Then
+                    BulletDetectX = 0
+                End If
+
+                If Map(BulletDetectY, BulletDetectX) <> 0 And Not Map(BulletDetectY, BulletDetectX) >= 100 Then
+                    CanShoot = True
+                End If
+
+                BulletBox = New RectangleF(x + CameraX + BulletX * 48 * ScaleRatio + 5 * ScaleRatio,
+                                                       y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - BulletY) * 48 * ScaleRatio - 24 * ScaleRatio - 10 * ScaleRatio,
+                                                       12 * ScaleRatio, 24 * ScaleRatio)
+                e.Graphics.DrawImage(BulletImg, BulletBox)
+            End If
+        End Sub
+
+        Public Sub MonsterAppearanceUpdate(id As Integer)
+            Select Case id
+                Case 0
+                    MonsterImg = My.Resources.Game.SlimeL
+                    MonsterWidth = 63
+                    MonsterHeight = 84
+                Case 1
+                    MonsterImg = My.Resources.Game.SlimeR
+                    MonsterWidth = 63
+                    MonsterHeight = 84
+            End Select
         End Sub
 
         Public Sub DrawGame(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean)
             '畫背景
             e.Graphics.DrawImage(BG, New RectangleF(x, y, width, height))
 
+            '偵測角色偏移以偏移鏡頭
             If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX > x + width / 2 And x + width < x + Map_Width * 48 * ScaleRatio + CameraX Then
                 CameraX -= 3 * ScaleRatio
             End If
@@ -495,27 +612,19 @@ Public Class Form1
                 CameraY -= 3 * ScaleRatio
             End If
 
-
-            If Keyboard(Keys.Up) Then
-                CameraY -= 1 * ScaleRatio
-            End If
-            If Keyboard(Keys.Down) Then
-                CameraY += 1 * ScaleRatio
-            End If
-            If Keyboard(Keys.Left) Then
-                CameraX -= 1 * ScaleRatio
-            End If
-            If Keyboard(Keys.Right) Then
-                CameraX += 1 * ScaleRatio
-            End If
-
+            '畫地圖
             MapDx = 0
             MapDy = height - Map_Height * 48 * ScaleRatio
-            '畫地圖
             For i = 0 To Map_Height - 1
                 For j = 0 To Map_Width - 1
-                    If Map(i, j) > 0 Then
+                    If Map(i, j) > 0 And Not Map(i, j) >= 100 Then
                         e.Graphics.DrawImage(Map_Texture(Map(i, j)), New RectangleF(x + MapDx + CameraX, y + MapDy + CameraY, 48 * ScaleRatio, 48 * ScaleRatio))
+                    End If
+                    If Map(i, j) >= 100 Then
+                        MonsterAppearanceUpdate(Map(i, j) - 100)
+                        MonsterX = j
+                        MonsterY = Map_Height - i
+                        e.Graphics.DrawImage(MonsterImg, New RectangleF(x + MapDx + CameraX, y + MapDy + CameraY - MonsterHeight * ScaleRatio + 48 * ScaleRatio, MonsterWidth * ScaleRatio, MonsterHeight * ScaleRatio))
                     End If
 
                     MapDx += 48 * ScaleRatio
@@ -523,7 +632,6 @@ Public Class Form1
                 MapDx = 0
                 MapDy += 48 * ScaleRatio
             Next
-
 
             '畫角色
             If Keyboard(Keys.D) Then
@@ -576,7 +684,7 @@ Public Class Form1
                 End If
             End If
 
-            CharacterImgChange(Keyboard, Mouse, MousePressed)
+            CharacterImgChange(e, Keyboard, Mouse, MousePressed, ScaleRatio)
 
             CharacterBox = New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio - CharacterAttackWidth * ScaleRatio,
                                           y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio,
@@ -584,6 +692,17 @@ Public Class Form1
                                           CharacterHeight * ScaleRatio)
 
             e.Graphics.DrawImage(CharacterImg, CharacterBox)
+
+            '畫角色血量
+            e.Graphics.FillRectangle(Brushes.White, New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio + 5 * ScaleRatio,
+                                                                   y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio - 10 * ScaleRatio,
+                                                                   37 * ScaleRatio,
+                                                                   5 * ScaleRatio))
+            e.Graphics.FillRectangle(Brushes.Red, New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio + 5 * ScaleRatio,
+                                                                   y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio - 10 * ScaleRatio,
+                                                                   37 * ScaleRatio * CharacterHealth / 100,
+                                                                   5 * ScaleRatio))
+
             LastUpdate = Now.Ticks() / 10000
         End Sub
     End Class
@@ -591,7 +710,7 @@ Public Class Form1
     '快速調整設定區
     Dim State As String = "Start"
 
-    Const Version As String = "Insider Preview 1.2"
+    Const Version As String = "Insider Preview 1.25"
     Const Copyright As String = "III Studio 製作"
 
     Const DefaultWidth As Integer = 800 '預設的寬度
@@ -664,13 +783,13 @@ Public Class Form1
     Dim VersionInfo As New MyTextBox With {.font = "Cubic11", .font_size = 8.5, .color = Color.FromArgb(0, 157, 157, 157), .Align = "Left", .LineAlign = "Bottom"}
     Dim CopyrightInfo As New MyTextBox With {.font = "Cubic11", .font_size = 8.5, .color = Color.FromArgb(0, 157, 157, 157), .Align = "Right", .LineAlign = "Bottom"}
 
-    Dim StartButton As New MyButton With {.Image = My.Resources.Menu.Start, .PressedImage = My.Resources.Menu.Start_Pressed}
-    Dim HowToPlayButton As New MyButton With {.Image = My.Resources.Menu.HowToPlay, .PressedImage = My.Resources.Menu.HowToPlay_Pressed}
-    Dim SettingButton As New MyButton With {.Image = My.Resources.Menu.Setting, .PressedImage = My.Resources.Menu.Setting_Pressed}
-    Dim ExitButton As New MyButton With {.Image = My.Resources.Menu._Exit, .PressedImage = My.Resources.Menu.Exit_Pressed}
+    Dim StartButton As New MyButton With {.Image = My.Resources.Menu.Start, .PressedImage = My.Resources.Menu.Start_Pressed, .Player = Ding}
+    Dim HowToPlayButton As New MyButton With {.Image = My.Resources.Menu.HowToPlay, .PressedImage = My.Resources.Menu.HowToPlay_Pressed, .Player = Ding}
+    Dim SettingButton As New MyButton With {.Image = My.Resources.Menu.Setting, .PressedImage = My.Resources.Menu.Setting_Pressed, .Player = Ding}
+    Dim ExitButton As New MyButton With {.Image = My.Resources.Menu._Exit, .PressedImage = My.Resources.Menu.Exit_Pressed, .Player = Ding}
 
     'HowToPlay1 初始化
-    Dim NextPageButton As New MyButton With {.Image = My.Resources.HowToPlay.NextPage, .PressedImage = My.Resources.HowToPlay.NextPage_Pressed}
+    Dim NextPageButton As New MyButton With {.Image = My.Resources.HowToPlay.NextPage, .PressedImage = My.Resources.HowToPlay.NextPage_Pressed, .Player = Ding}
     Dim HowToPlay_Text As New MyTextBox With {.font = "Cubic11", .font_size = 21.5, .color = Color.Black}
     Dim HowToPlay_Img As New MyPictureBox With {.Image = My.Resources.HowToPlay.HowToPlay1}
     Dim HowToPlay1_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -681,7 +800,7 @@ Public Class Form1
                                         {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
                                         {1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1},
                                         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
-    Dim DemoGame As New Game With {.Map = HowToPlay1_Map, .Map_Width = 16, .Map_Height = 8, .BG = My.Resources.HowToPlay.Sky}
+    Dim DemoGame As New Game With {.Map = HowToPlay1_Map, .Map_Width = 16, .Map_Height = 8, .BG = My.Resources.HowToPlay.Sky, .SoundEffect = SoundEffect}
 
     'HowToPlay2初始化
     Dim HowToPlay2_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -690,14 +809,14 @@ Public Class Form1
                                         {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
                                         {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
                                         {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                        {1, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 1},
                                         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
 
     'Setting 初始化
     Dim SettingText As New MyTextBox With {.font = "Cubic11", .font_size = 30.9, .color = Color.White}
     Dim MusicSlider As New Slider
     Dim SoundEffectSlider As New Slider
-    Dim DoneSettingButton As New MyButton With {.Image = My.Resources.Setting.DoneSetting, .PressedImage = My.Resources.Setting.DoneSetting_Activated}
+    Dim DoneSettingButton As New MyButton With {.Image = My.Resources.Setting.DoneSetting, .PressedImage = My.Resources.Setting.DoneSetting_Activated, .Player = Ding}
 
     'Intro 初始化
     Dim IntroStartTime As Long
@@ -830,7 +949,7 @@ Public Class Form1
                 CopyrightInfo.Draw(Copyright, e, myfont, ScaleRatio)
 
                 StartButton.Box = New RectangleF(MyWidth - 332 * ScaleRatio, 97 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If StartButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
+                If StartButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     State = "Intro"
                     IntroStartTime = Now.Ticks() / 10000
                     TextIndex = 0
@@ -840,7 +959,7 @@ Public Class Form1
                 End If
 
                 HowToPlayButton.Box = New RectangleF(MyWidth - 289 * ScaleRatio, 170 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If HowToPlayButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
+                If HowToPlayButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay1
                     BGisOn = False
                     State = "HowToPlay1"
@@ -853,12 +972,12 @@ Public Class Form1
                 End If
 
                 SettingButton.Box = New RectangleF(MyWidth - 258 * ScaleRatio, 245 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If SettingButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
+                If SettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     State = "Setting"
                 End If
 
                 ExitButton.Box = New RectangleF(MyWidth - 238 * ScaleRatio, 319 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If ExitButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
+                If ExitButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     State = "Exit"
                 End If
 
@@ -886,7 +1005,7 @@ Public Class Form1
                 e.Graphics.FillRectangle(Brushes.Black, New RectangleF(MyWidth / 2 - 702 / 2 * ScaleRatio + 702 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth / 2 - 702 / 2 * ScaleRatio, 382.811 * ScaleRatio))
 
                 NextPageButton.Box = New RectangleF(MyWidth / 2 + 175 * ScaleRatio, MyHeight / 2 + 150 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If NextPageButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
+                If NextPageButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay2
                     State = "HowToPlay2"
                     DemoGame.CharacterX = 1.1
@@ -918,7 +1037,7 @@ Public Class Form1
                 e.Graphics.FillRectangle(Brushes.Black, New RectangleF(MyWidth / 2 - 702 / 2 * ScaleRatio + 702 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth / 2 - 702 / 2 * ScaleRatio, 382.811 * ScaleRatio))
 
                 NextPageButton.Box = New RectangleF(MyWidth / 2 + 175 * ScaleRatio, MyHeight / 2 + 150 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If NextPageButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
+                If NextPageButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     BGisOn = True
                     State = "Menu"
                 End If
@@ -941,7 +1060,7 @@ Public Class Form1
                 SoundEffect.settings.volume = SoundEffectSlider.value
 
                 DoneSettingButton.Box = New RectangleF(566 * ScaleRatio, 362 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If DoneSettingButton.Draw(e, Mouse, MousePressed, Ding, SoundEffect.settings.volume) = 3 Then
+                If DoneSettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     State = "Menu"
                 End If
 

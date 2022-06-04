@@ -67,6 +67,26 @@ Namespace My.Resources
         '''<summary>
         '''  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
         '''</summary>
+        Friend Shared ReadOnly Property BulletL() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("BulletL", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        '''</summary>
+        Friend Shared ReadOnly Property BulletR() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("BulletR", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        '''</summary>
         Friend Shared ReadOnly Property CLAN() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("CLAN", resourceCulture)
@@ -230,6 +250,26 @@ Namespace My.Resources
         Friend Shared ReadOnly Property CRNW2() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("CRNW2", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        '''</summary>
+        Friend Shared ReadOnly Property SlimeL() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("SlimeL", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        '''</summary>
+        Friend Shared ReadOnly Property SlimeR() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("SlimeR", resourceCulture)
                 Return CType(obj,System.Drawing.Bitmap)
             End Get
         End Property

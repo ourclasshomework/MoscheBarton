@@ -322,7 +322,7 @@ Public Class Form1
         Private Character_Speed As Double = 0.09 '(格/每次更新)
         Private CharacterYv As Double = 0
 
-        Public Const CharacterMaxHealth As Double = 500
+        Public Const CharacterMaxHealth As Double = 100
         Public CharacterHealth As Double = CharacterMaxHealth
 
         Public CharacterBox As RectangleF
@@ -363,12 +363,12 @@ Public Class Form1
 
         Public CanShoot As Boolean = True
         Private LastShoot As Long = 0
-        Private ShootGap As Long = 250 'ms
+        Private ShootGap As Long = 400 'ms
         Private HadShot As Boolean = False
 
         '攻擊CD條--------------------------------------------------------------------------------------------------------------------------------------------
-        Private CDBarFull As Double = 1
-        Private CDShowValue As Double = 1
+        Private CDBarFull As Double = 400
+        Private CDShowValue As Double = 400
 
         Public Sub CharacterReset(x As Double, y As Double)
             CharacterX = x
@@ -539,14 +539,14 @@ Public Class Form1
                         BulletWidth = 41
                         BulletHeight = 33
 
-                        ShootGap = 1250
-                        CDBarFull = 1250
+                        ShootGap = 1500
+                        CDBarFull = 1500
 
                     ElseIf MousePressed Then
                         Attack.URL = My.Application.Info.DirectoryPath & "\Music\射出.mp3" '選擇路徑
                         Attack.settings.setMode("loop", False) '設定是否循環
                         Attack.controls.play() '播放
-                        CharacterHarmDamage = 3
+                        CharacterHarmDamage = 5
 
                         If BulletDirection Then
                             BulletImg = My.Resources.Game.BulletL
@@ -557,8 +557,8 @@ Public Class Form1
                         BulletWidth = 12
                         BulletHeight = 24
 
-                        ShootGap = 250
-                        CDBarFull = 250
+                        ShootGap = 400
+                        CDBarFull = 400
 
                     End If
                 End If
@@ -649,10 +649,10 @@ Public Class Form1
         Public Sub DrawGame(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean, volume As Integer)
             Attack.settings.volume = volume
 
-            '畫背景
+            '畫背景--------------------------------------------------------------------------------------------------------------------------------------------
             e.Graphics.DrawImage(BG, New RectangleF(x, y, width, height))
 
-            '偵測角色偏移以偏移鏡頭
+            '偵測角色偏移以偏移鏡頭--------------------------------------------------------------------------------------------------------------------------------------------
             If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX > x + width / 2 And x + width < x + Map_Width * 48 * ScaleRatio + CameraX Then
                 CameraX -= CameraSpeed * ScaleRatio
             End If
@@ -666,7 +666,7 @@ Public Class Form1
                 CameraY -= CameraSpeed * ScaleRatio
             End If
 
-            '畫地圖
+            '畫地圖--------------------------------------------------------------------------------------------------------------------------------------------
             MapDx = 0
             MapDy = height - Map_Height * 48 * ScaleRatio
             For i = 0 To Map_Height - 1
@@ -684,7 +684,7 @@ Public Class Form1
                 MapDy += 48 * ScaleRatio
             Next
 
-            '角色部分--------------------------------------------------------------------
+            '角色部分----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             If Not CharacterDied Then
                 '角色向右
                 If Keyboard(Keys.D) Then
@@ -716,7 +716,7 @@ Public Class Form1
                 End If
             End If
 
-            '角色重力
+            '角色重力--------------------------------------------------------------------------------------------------------------------------------------------
             CharacterYv -= G
             CharacterY += CharacterYv * 5
             Detect()
@@ -730,7 +730,7 @@ Public Class Form1
                 Character_Jump = False
             End If
 
-            '角色走路動畫
+            '角色走路動畫--------------------------------------------------------------------------------------------------------------------------------------------
             If Now.Ticks() / 10000 - CharacterMoveAniTimer > 100 Then
                 CharacterMoveAniTimer = Now.Ticks() / 10000
                 CharacterMoveAni += 1
@@ -739,19 +739,19 @@ Public Class Form1
                 End If
             End If
 
-            '偵測滑鼠與鍵盤動作，以更換角色動作與畫子彈
+            '偵測滑鼠與鍵盤動作，以更換角色動作與畫子彈--------------------------------------------------------------------------------------------------------------------------------------------
             CharacterImgChange(e, Keyboard, Mouse, MousePressed, ScaleRatio)
 
-            '設定角色要畫的地方
+            '設定角色要畫的地方--------------------------------------------------------------------------------------------------------------------------------------------
             CharacterBox = New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio - CharacterAttackWidth * ScaleRatio,
                                           y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio,
                                           CharacterWidth * ScaleRatio,
                                           CharacterHeight * ScaleRatio)
 
-            '畫角色
+            '畫角色--------------------------------------------------------------------------------------------------------------------------------------------
             e.Graphics.DrawImage(CharacterImg, CharacterBox)
 
-            '畫角色血量
+            '畫角色血量--------------------------------------------------------------------------------------------------------------------------------------------
             e.Graphics.FillRectangle(Brushes.White, New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio + 5 * ScaleRatio,
                                                                    y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio - 15 * ScaleRatio,
                                                                    37 * ScaleRatio,
@@ -771,7 +771,7 @@ Public Class Form1
                 End If
             End If
 
-            '畫CD條
+            '畫CD條--------------------------------------------------------------------------------------------------------------------------------------------
             If ShootGap / 1000 - (Now.Ticks() / 10000 - LastShoot) / 1000 <= 0 Then
                 CDShowValue = 0
             Else
@@ -1119,7 +1119,7 @@ Public Class Form1
                         ShowDamage = False
                     Else
                         DamageText.point.X = x + BulletX * ScaleRatio * 48 + CameraX
-                        DamageText.point.Y = y + (Map_Height - BulletY - 2.5) * 48 * ScaleRatio + CameraY
+                        DamageText.point.Y = y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight / 2 * ScaleRatio
                         DamageText.Draw(CStr(Damage), e, myfont, ScaleRatio)
                     End If
                 End If
@@ -1146,7 +1146,7 @@ Public Class Form1
         End Sub
     End Class
 
-    '快速調整設定區
+    '快速調整設定區--------------------------------------------------------------------------------------------------------------------------------------------
     Dim State As String = "Start" '整個程式的起始點
 
     Const Version As String = "Insider Preview 1.5"
@@ -1161,41 +1161,41 @@ Public Class Form1
     Const OpeningSpeed As Integer = 2000 '每個開場動畫持續的時間 (ms)
     Const ShowDamageTime As Double = 250 '顯示傷害數值的時間 (ms)
 
-    '初始化Timer
+    '初始化Timer--------------------------------------------------------------------------------------------------------------------------------------------
     Dim ScreenRefresh As New Timer(1)
 
-    '字體初始化
+    '字體初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim myfont As New PrivateFontCollection
     Dim bytes As Byte()
     Dim ptr As IntPtr
 
-    '螢幕縮放比例初始化
+    '螢幕縮放比例初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim MyWidth As Integer = DefaultWidth
     Dim MyHeight As Integer = DefaultHeight
     Dim ScaleRatio As Double = 1.0
 
-    '鍵盤初始化
+    '鍵盤初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim Keyboard(256) As Boolean
 
-    '滑鼠初始化
+    '滑鼠初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim Mouse As New Point(0, 0)
     Dim MousePressed As Boolean = False
 
-    '音樂初始化
+    '音樂初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim BGM As New WMPLib.WindowsMediaPlayer
     Dim SoundEffect As New WMPLib.WindowsMediaPlayer
     Dim Ding As New WMPLib.WindowsMediaPlayer
 
-    'DebugPanel 初始化
+    'DebugPanel 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim DebugPanelOn As Boolean = DefaultDebugPanelOn
     Dim DebugInfo As New MyTextBox With {.font = "Consolas", .font_size = 10, .color = Color.Yellow}
 
-    '計算幀數的東東
+    '計算幀數的東東--------------------------------------------------------------------------------------------------------------------------------------------
     Dim lastUpdate As Long
     Dim FPS As Double
     Dim Frametime As Double
 
-    '背景初始化
+    '背景初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim BGisOn As Boolean = True '預設的背景是否顯示
     Dim BGColorA As Double = 0 '預設透明度 (0-255)
     Dim BGColors As Color() = {Color.FromArgb(35, 35, 35), Color.FromArgb(0, 0, 0), Color.FromArgb(35, 35, 35)}
@@ -1204,23 +1204,23 @@ Public Class Form1
     Dim BGBrush As New LinearGradientBrush(New Point(0, 0), New Point(100, 500), Color.Black, Color.White)
     Dim BGAnimation As Single = 0
 
-    '開場動畫計時器
+    '開場動畫計時器--------------------------------------------------------------------------------------------------------------------------------------------
     Dim OpeningStartTime As Long 'Ticks = 毫秒/10000
 
-    'Loading 初始化
+    'Loading 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim LoadingIndex As Integer = 0
     Dim LoadingShow As Boolean = False '是否要顯示Loading
     Dim LoadingSeq() As Bitmap = {My.Resources.Loading._0, My.Resources.Loading._1, My.Resources.Loading._2, My.Resources.Loading._3, My.Resources.Loading._4, My.Resources.Loading._5, My.Resources.Loading._6, My.Resources.Loading._7, My.Resources.Loading._8, My.Resources.Loading._9, My.Resources.Loading._10, My.Resources.Loading._11, My.Resources.Loading._12, My.Resources.Loading._13, My.Resources.Loading._14, My.Resources.Loading._15, My.Resources.Loading._16, My.Resources.Loading._17, My.Resources.Loading._18, My.Resources.Loading._19, My.Resources.Loading._20, My.Resources.Loading._21, My.Resources.Loading._22, My.Resources.Loading._23, My.Resources.Loading._24, My.Resources.Loading._25, My.Resources.Loading._26, My.Resources.Loading._27, My.Resources.Loading._28, My.Resources.Loading._29}
     Dim Loading As New MyPictureBox
 
-    'StudioLogo 初始化
+    'StudioLogo 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim StudioLogo As New MyTextBox With {.font = "Monoton", .font_size = 50, .color = Color.White, .opacity = 0, .Align = "Center", .LineAlign = "Center"}
 
-    'GameLogo 初始化
+    'GameLogo 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim GameLogo As New MyTextBox With {.font = "Cubic11", .font_size = 50, .color = Color.White, .opacity = 0, .Align = "Center", .LineAlign = "Center"}
     Dim GameSubLogo As New MyTextBox With {.font = "Cubic11", .font_size = 30.9, .color = Color.FromArgb(157, 157, 157), .opacity = 0, .Align = "Center", .LineAlign = "Center"}
 
-    'Menu 初始化
+    'Menu 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim MenuCaption As New MyPictureBox With {.Image = My.Resources.Menu.Caption}
     Dim VersionInfo As New MyTextBox With {.font = "Cubic11", .font_size = 8.5, .color = Color.FromArgb(0, 157, 157, 157), .Align = "Left", .LineAlign = "Bottom"}
     Dim CopyrightInfo As New MyTextBox With {.font = "Cubic11", .font_size = 8.5, .color = Color.FromArgb(0, 157, 157, 157), .Align = "Right", .LineAlign = "Bottom"}
@@ -1230,7 +1230,7 @@ Public Class Form1
     Dim SettingButton As New MyButton With {.Image = My.Resources.Menu.Setting, .PressedImage = My.Resources.Menu.Setting_Pressed, .Player = Ding}
     Dim ExitButton As New MyButton With {.Image = My.Resources.Menu._Exit, .PressedImage = My.Resources.Menu.Exit_Pressed, .Player = Ding}
 
-    'HowToPlay1 初始化
+    'HowToPlay1 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim NextPageButton As New MyButton With {.Image = My.Resources.HowToPlay.NextPage, .PressedImage = My.Resources.HowToPlay.NextPage_Pressed, .Player = Ding}
     Dim HowToPlay_Text As New MyTextBox With {.font = "Cubic11", .font_size = 21.5, .color = Color.Black}
     Dim HowToPlay_Img As New MyPictureBox With {.Image = My.Resources.HowToPlay.HowToPlay1}
@@ -1244,7 +1244,7 @@ Public Class Form1
                                         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
     Dim DemoGame As New Game With {.Map = HowToPlay1_Map, .Map_Width = 16, .Map_Height = 8, .BG = My.Resources.Game.Day}
 
-    'HowToPlay2 初始化
+    'HowToPlay2 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim HowToPlay2_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
                                         {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
                                         {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
@@ -1255,13 +1255,13 @@ Public Class Form1
                                         {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
     Dim DemoMonster As New Monster With {.MonsterX = 9, .MonsterY = 4}
 
-    'Setting 初始化
+    'Setting 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim SettingText As New MyTextBox With {.font = "Cubic11", .font_size = 30.9, .color = Color.White}
     Dim MusicSlider As New Slider
     Dim SoundEffectSlider As New Slider
     Dim DoneSettingButton As New MyButton With {.Image = My.Resources.Setting.DoneSetting, .PressedImage = My.Resources.Setting.DoneSetting_Activated, .Player = Ding}
 
-    'Intro 初始化
+    'Intro 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim IntroStartTime As Long '開始顯示字幕的時間 (ms)
     Dim IntroText() As String = {"我曾踏過千山萬水", "行過無數市鎮", "與牧人一起唱著山歌", "和漁夫共同經歷風暴", "只為求得那", "不存於人世的音樂", "那是我年輕時的故事了", "呵呵，別看我現在這糟老頭樣", "我年輕時可是才華洋溢的提琴手呢！", "孩子們", "靠過來點", "今天老莫爺爺我啊", "要說的是我年輕時最不可思議的事", "那就是跟使用邪惡音樂", "攻擊村莊的魔王死戰", "嘿！誰說英雄一定要拿劍的", "坐好坐好，要開始囉！", "嗯咳！", "那，是一個陰暗的日子。。。。。"}
     Dim IntroTimeCodeStart As Integer() = {12000, 15040, 16704, 19104, 21696, 23392, 26656, 28736, 31360, 34592, 35488, 36864, 38784, 42432, 44150, 46478, 49166, 51086, 52270} '(ms)
@@ -1282,7 +1282,7 @@ Public Class Form1
     '跳過按鈕
     Dim SkipButton As New MyButton With {.Image = My.Resources.Intro.Skip, .PressedImage = My.Resources.Intro.SkipActivated, .Player = Ding}
 
-    'Game 初始化
+    'Game 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim MainGame_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 3, 0, 0, 0, 0, 1},
                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 3, 0, 0, 0, 0, 1},
@@ -1299,11 +1299,14 @@ Public Class Form1
                                       {1, 0, 0, 0, 1, 1, 1, 3, 0, 0, 0, 3, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1},
                                       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
     Dim MainGame As New Game With {.Map = MainGame_Map, .Map_Width = 32, .Map_Height = 15, .BG = My.Resources.Game.Day}
+
+    Dim Slime1 As New Monster With {.MonsterX = 18, .MonsterY = 11}
+    Dim Slime2 As New Monster With {.MonsterX = 18, .MonsterY = 8}
     Dim Abyssosque1 As New Monster With {.MonsterX = 16.4, .MonsterY = 4}
     Dim Abyssosque2 As New Monster With {.MonsterX = 20.4, .MonsterY = 4}
     Dim Abyssosque3 As New Monster With {.MonsterX = 24.4, .MonsterY = 4}
 
-    'DeadMenu
+    'DeadMenu--------------------------------------------------------------------------------------------------------------------------------------------
     Dim ShowDeathMenu As Boolean = False
     Dim DiedText As New MyTextBox With {.font = "Cubic11", .font_size = 30, .color = Color.White, .LineAlign = "Center", .Align = "Center"}
     Dim ReplayButton As New MyButton With {.Image = My.Resources.DiedMenu.Replay, .PressedImage = My.Resources.DiedMenu.ReplayActivated, .Player = Ding}
@@ -1405,6 +1408,7 @@ Public Class Form1
 
             Case "ToMenu"
                 State = "Menu"
+                SoundEffect.controls.stop()
                 PlaySound(BGM, "MenuBGM.wav", True)
 
             Case "Menu"
@@ -1604,9 +1608,13 @@ Public Class Form1
                 MainGame.MapSetting(32, 15)
                 MainGame.CameraReset()
                 MainGame.Map = MainGame_Map
+
+                Slime1.MonsterReset(0, 1, 18, 11, 5)
+                Slime2.MonsterReset(0, 1, 18, 8, 5)
                 Abyssosque1.MonsterReset(2, 3, 16.4, 1, 750)
                 Abyssosque2.MonsterReset(2, 3, 20.4, 1, 750)
                 Abyssosque3.MonsterReset(2, 3, 24.4, 1, 750)
+
                 PlaySound(BGM, "Mozart Reqium Dies Irae.mp3", True)
                 SoundEffect.controls.stop()
                 LoadingShow = False
@@ -1616,6 +1624,10 @@ Public Class Form1
                 MainGame.BoxSetting(0, 0, MyWidth, MyHeight)
                 MainGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed, SoundEffect.settings.volume)
 
+                Slime1.SyncWith(MainGame)
+                Slime1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                Slime2.SyncWith(MainGame)
+                Slime2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
                 Abyssosque1.SyncWith(MainGame)
                 Abyssosque1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
                 Abyssosque2.SyncWith(MainGame)
@@ -1654,7 +1666,7 @@ Public Class Form1
 
                 DiedText.point.X = MyWidth / 2
                 DiedText.point.Y = MyHeight / 2 - 24 * ScaleRatio
-                DiedText.Draw("讓家族蒙羞了...", e, myfont, ScaleRatio)
+                DiedText.Draw("讓家族...蒙羞..了....", e, myfont, ScaleRatio)
 
             Case "Exit"
                 WMPExit(BGM)
@@ -1712,6 +1724,8 @@ Public Class Form1
         DemoGame.myfont = myfont
         DemoMonster.myfont = myfont
         MainGame.myfont = myfont
+        Slime1.myfont = myfont
+        Slime2.myfont = myfont
         Abyssosque1.myfont = myfont
         Abyssosque2.myfont = myfont
         Abyssosque3.myfont = myfont

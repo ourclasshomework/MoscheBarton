@@ -254,7 +254,9 @@
     <Content Include="Music\技能.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Music\死掉.mp3" />
+    <Content Include="Music\死掉.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Music\被打.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

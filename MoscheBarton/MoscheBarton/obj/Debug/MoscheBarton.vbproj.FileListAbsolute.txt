@@ -30,3 +30,4 @@ D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Debug\Music\被打.
 D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Debug\Music\Mozart Reqium Dies Irae.mp3
 D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Debug\MoscheBarton.Intro.resources
 D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\Debug\MoscheBarton.DiedMenu.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\Debug\Music\死掉.mp3

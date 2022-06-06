@@ -151,6 +151,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>DiedMenu.resx</DependentUpon>
     </Compile>
+    <Compile Include="SelectLevel.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SelectLevel.resx</DependentUpon>
+    </Compile>
     <Compile Include="Setting.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -201,6 +206,11 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>DiedMenu.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectLevel.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SelectLevel.Designer.vb</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Setting.resx">
       <CustomToolNamespace>My.Resources</CustomToolNamespace>

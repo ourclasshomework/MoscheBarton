@@ -291,6 +291,11 @@ MoscheBarton
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>
 </member>
+<member name="P:MoscheBarton.My.Resources.Game.NextLevel">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
 <member name="P:MoscheBarton.My.Resources.Game.Planks">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
@@ -535,6 +540,92 @@ MoscheBarton
 </summary>
 </member>
 <member name="P:MoscheBarton.My.Resources.DiedMenu.ReplayActivated">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="T:MoscheBarton.My.Resources.SelectLevel">
+<summary>
+  用於查詢當地語系化字串等的強類型資源類別。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel.ResourceManager">
+<summary>
+  傳回這個類別使用的快取的 ResourceManager 執行個體。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel.Culture">
+<summary>
+  覆寫目前執行緒的 CurrentUICulture 屬性，對象是所有
+  使用這個強類型資源類別的資源查閱。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_1">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_1A">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_1Preview">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_2">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_2A">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_2Preview">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_3">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_3A">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_3Preview">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_4">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_4A">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel._1_4Preview">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel.Done">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.SelectLevel.DoneA">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>

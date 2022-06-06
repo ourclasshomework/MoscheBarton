@@ -107,6 +107,16 @@ Namespace My.Resources
         '''<summary>
         '''  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
         '''</summary>
+        Friend Shared ReadOnly Property Boss() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("Boss", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        '''</summary>
         Friend Shared ReadOnly Property BulletL() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("BulletL", resourceCulture)
@@ -320,6 +330,16 @@ Namespace My.Resources
         Friend Shared ReadOnly Property Log() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("Log", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        '''</summary>
+        Friend Shared ReadOnly Property NextLevel() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("NextLevel", resourceCulture)
                 Return CType(obj,System.Drawing.Bitmap)
             End Get
         End Property

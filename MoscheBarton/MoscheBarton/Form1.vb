@@ -277,6 +277,7 @@ Public Class Form1
         Public width As Double
         Public height As Double
         Public BG As Bitmap
+        Public level As Double = 0
         Private Const G As Double = 9.80665 / 1000 '重力加速度常數 (格/ms^2)
         Public CameraX As Double = 0
         Public CameraY As Double = 0
@@ -302,7 +303,7 @@ Public Class Form1
         Public Map As Integer(,)
         Public Map_Width As Integer
         Public Map_Height As Integer
-        Private Map_Texture As Bitmap() = {My.Resources.Game.Cobblestone, My.Resources.Game.Cobblestone, My.Resources.Game.Planks, My.Resources.Game.Log, My.Resources.Game.Fence}
+        Private Map_Texture As Bitmap() = {My.Resources.Game.Cobblestone, My.Resources.Game.Cobblestone, My.Resources.Game.Planks, My.Resources.Game.Log, My.Resources.Game.Fence, My.Resources.Game.NextLevel}
         Private MapDx As Double = 0
         Private MapDy As Double = 0
 
@@ -528,16 +529,17 @@ Public Class Form1
                         Attack.URL = My.Application.Info.DirectoryPath & "\Music\技能.mp3" '選擇路徑
                         Attack.settings.setMode("loop", False) '設定是否循環
                         Attack.controls.play() '播放
-                        CharacterHarmDamage = 15
+                        CharacterHarmDamage = 25
 
                         If BulletDirection Then
                             BulletImg = My.Resources.Game.AbilityL
+                            BulletWidth = 48
+                            BulletHeight = 33
                         Else
                             BulletImg = My.Resources.Game.AbilityR
+                            BulletWidth = 52
+                            BulletHeight = 33
                         End If
-
-                        BulletWidth = 41
-                        BulletHeight = 33
 
                         ShootGap = 1500
                         CDBarFull = 1500
@@ -546,7 +548,7 @@ Public Class Form1
                         Attack.URL = My.Application.Info.DirectoryPath & "\Music\射出.mp3" '選擇路徑
                         Attack.settings.setMode("loop", False) '設定是否循環
                         Attack.controls.play() '播放
-                        CharacterHarmDamage = 5
+                        CharacterHarmDamage = 7
 
                         If BulletDirection Then
                             BulletImg = My.Resources.Game.BulletL
@@ -972,6 +974,22 @@ Public Class Form1
                     Monster_Speed = 0.03
                     MonsterDetectArea = 3.5
                     DamageTimeGap = 1000
+                Case 4
+                    MonsterImg = My.Resources.Game.Boss
+                    MonsterWidth = 115.1535
+                    MonsterHeight = 205.513
+                    MonsterMaxHealth = 200
+                    Monster_Speed = 0.03
+                    MonsterDetectArea = 3.5
+                    DamageTimeGap = 1000
+                Case 5
+                    MonsterImg = My.Resources.Game.Boss
+                    MonsterWidth = 115.1535
+                    MonsterHeight = 205.513
+                    MonsterMaxHealth = 200
+                    Monster_Speed = 0.03
+                    MonsterDetectArea = 3.5
+                    DamageTimeGap = 1000
             End Select
         End Sub
 
@@ -1047,7 +1065,35 @@ Public Class Form1
                             MonsterX = Math.Floor(MonsterX) + 1
                         End If
                     End If
-                End If
+
+                    'Boss
+                ElseIf RightId = 5 Then
+                    '怪物擋右牆
+                    If CharacterX > MonsterX And CharacterX - MonsterX < MonsterDetectArea Then
+                            MonsterDirection = True
+
+                            MonsterX += Monster_Speed
+                            MonsterAppearanceUpdate(RightId)
+
+                            MonsterDetect()
+                            If MonsterRight Then
+                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
+                            End If
+                        End If
+
+                        '怪物擋左牆
+                        If CharacterX < MonsterX And MonsterX - CharacterX < MonsterDetectArea Then
+                            MonsterDirection = False
+
+                            MonsterX -= Monster_Speed
+                            MonsterAppearanceUpdate(LeftId)
+
+                            MonsterDetect()
+                            If MonsterLeft Then
+                                MonsterX = Math.Floor(MonsterX) + 1
+                            End If
+                        End If
+                    End If
 
                 '怪物重力
                 MonsterYv -= G
@@ -1266,6 +1312,7 @@ Public Class Form1
     Dim IntroText() As String = {"我曾踏過千山萬水", "行過無數市鎮", "與牧人一起唱著山歌", "和漁夫共同經歷風暴", "只為求得那", "不存於人世的音樂", "那是我年輕時的故事了", "呵呵，別看我現在這糟老頭樣", "我年輕時可是才華洋溢的提琴手呢！", "孩子們", "靠過來點", "今天老莫爺爺我啊", "要說的是我年輕時最不可思議的事", "那就是跟使用邪惡音樂", "攻擊村莊的魔王死戰", "嘿！誰說英雄一定要拿劍的", "坐好坐好，要開始囉！", "嗯咳！", "那，是一個陰暗的日子。。。。。"}
     Dim IntroTimeCodeStart As Integer() = {12000, 15040, 16704, 19104, 21696, 23392, 26656, 28736, 31360, 34592, 35488, 36864, 38784, 42432, 44150, 46478, 49166, 51086, 52270} '(ms)
     Dim IntroTimeCodeEnd As Integer() = {14816, 16640, 18912, 21632, 23232, 26112, 28608, 31104, 34016, 35296, 36512, 38432, 41920, 44088, 45710, 48878, 50510, 51534, 56750} '(ms)
+    Dim OriginalBGMvolume As Integer
 
     '文字動畫的東西
     Dim TextSpeed As Double = 15
@@ -1275,15 +1322,26 @@ Public Class Form1
     '顯示文字的東西
     Dim ShowText As New MyTextBox With {.font = "Cubic11", .font_size = 30, .color = Color.White, .LineAlign = "Center"}
     Dim NowShowText As String
-
     '最後的變暗
-    Dim DimScreen As Integer = 0
 
+    Dim DimScreen As Integer = 0
     '跳過按鈕
+
     Dim SkipButton As New MyButton With {.Image = My.Resources.Intro.Skip, .PressedImage = My.Resources.Intro.SkipActivated, .Player = Ding}
 
+    'SelectLevel 初始化--------------------------------------------------------------------------------------------------------------------------------------------
+    Dim SelectLevelText As New MyTextBox With {.font = "Cubic11", .font_size = 30.9, .color = Color.White}
+
+    Dim Button11 As New MyButton With {.Image = My.Resources.SelectLevel._1_1, .PressedImage = My.Resources.SelectLevel._1_1A, .Player = Ding}
+    Dim Button12 As New MyButton With {.Image = My.Resources.SelectLevel._1_2, .PressedImage = My.Resources.SelectLevel._1_2A, .Player = Ding}
+    Dim Button13 As New MyButton With {.Image = My.Resources.SelectLevel._1_3, .PressedImage = My.Resources.SelectLevel._1_3A, .Player = Ding}
+    Dim Button14 As New MyButton With {.Image = My.Resources.SelectLevel._1_4, .PressedImage = My.Resources.SelectLevel._1_4A, .Player = Ding}
+    Dim LevelDoneButton As New MyButton With {.Image = My.Resources.SelectLevel.Done, .PressedImage = My.Resources.SelectLevel.DoneA, .Player = Ding}
+
+    Dim LevelPreview As New MyPictureBox With {.Image = My.Resources.SelectLevel._1_1Preview}
+
     'Game 初始化--------------------------------------------------------------------------------------------------------------------------------------------
-    Dim MainGame_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    Dim MainGame1_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 3, 0, 0, 0, 0, 1},
                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 3, 0, 0, 0, 0, 1},
                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 3, 0, 0, 0, 0, 1},
@@ -1291,20 +1349,39 @@ Public Class Form1
                                       {1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 0, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 3, 0, 0, 0, 0, 1},
                                       {1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 0, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, -4, 0, 0, 3, 0, 0, 0, 0, 1},
                                       {1, 0, 0, 0, 1, 1, 1, 3, 2, 2, 2, 3, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0, 1},
-                                      {1, 1, 0, 0, 0, 0, 0, -4, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
+                                      {1, 1, 0, 0, 0, 0, 0, -4, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -5, 1},
                                       {1, 1, 1, 0, 0, 0, 0, -4, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1},
                                       {1, 1, 1, 1, 0, 0, 0, -4, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1},
                                       {1, 0, 0, 0, 0, 0, 1, 3, 2, 2, 2, 3, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1},
                                       {1, 0, 0, 0, 0, 1, 1, 3, 0, 0, 0, 3, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1},
                                       {1, 0, 0, 0, 1, 1, 1, 3, 0, 0, 0, 3, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1},
                                       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
-    Dim MainGame As New Game With {.Map = MainGame_Map, .Map_Width = 32, .Map_Height = 15, .BG = My.Resources.Game.Day}
+    Dim MainGame As New Game With {.Map = MainGame1_Map, .Map_Width = 32, .Map_Height = 15, .BG = My.Resources.Game.Day}
 
     Dim Slime1 As New Monster With {.MonsterX = 18, .MonsterY = 11}
     Dim Slime2 As New Monster With {.MonsterX = 18, .MonsterY = 8}
     Dim Abyssosque1 As New Monster With {.MonsterX = 16.4, .MonsterY = 4}
     Dim Abyssosque2 As New Monster With {.MonsterX = 20.4, .MonsterY = 4}
     Dim Abyssosque3 As New Monster With {.MonsterX = 24.4, .MonsterY = 4}
+
+    Dim MainGame2_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                                       {1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 2, 0, 0, 3, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 1, 1, 1, 2, 2, 0, 0, 3, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 1, 1, 1, 3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 1, 1, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 1, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
+                                       {1, 1, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -5, 1, 0, 0, 1},
+                                       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
+
+    Dim Abyssosque4 As New Monster With {.MonsterX = 16.4, .MonsterY = 4}
+    Dim Boss As New Monster With {.MonsterX = 19, .MonsterY = 1}
 
     'DeadMenu--------------------------------------------------------------------------------------------------------------------------------------------
     Dim ShowDeathMenu As Boolean = False
@@ -1554,6 +1631,9 @@ Public Class Form1
                 Select Case Now.Ticks() / 10000 - IntroStartTime
                     Case 0 To 3000
                         LoadingShow = True
+                        OriginalBGMvolume = BGM.settings.volume
+                        TextAnimationIndex = 0
+                        NowShowText = ""
 
                     Case 3000 To 3250
                         PlaySound(BGM, "Bach Air on the G String.mp3", False)
@@ -1570,9 +1650,11 @@ Public Class Form1
                                 DimScreen = 255
                             End If
                         End If
+                        BGM.settings.volume *= 0.95
 
                     Case IntroTimeCodeEnd(IntroText.Length() - 1) + 2000 To IntroTimeCodeEnd(IntroText.Length() - 1) + 2000 + 2000
-                        State = "ToGame"
+                        State = "ToSelectLevel"
+                        BGM.settings.volume = OriginalBGMvolume
 
                     Case IntroTimeCodeStart(TextIndex) To IntroTimeCodeEnd(TextIndex)
                         If TextAnimationIndex < IntroText(TextIndex).Length Then
@@ -1597,43 +1679,136 @@ Public Class Form1
 
                 SkipButton.Box = New RectangleF(MyWidth - 104 * ScaleRatio, 20 * ScaleRatio, 81.695 * ScaleRatio, 21.4067 * ScaleRatio)
                 If SkipButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
-                    State = "ToGame"
+                    State = "ToSelectLevel"
                 End If
 
                 e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(DimScreen, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
 
+            Case "ToSelectLevel"
+                SoundEffect.controls.stop()
+                LoadingShow = False
+
+                SettingText.point.X = 50 * ScaleRatio
+                SettingText.point.Y = 42 * ScaleRatio
+                SettingText.Draw("選擇關卡  關卡 1-" & CStr(MainGame.level + 1), e, myfont, ScaleRatio)
+
+                Button11.Box = New RectangleF(64 * ScaleRatio, 140 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
+                If Button11.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                    MainGame.level = 0
+                    LevelPreview.Image = My.Resources.SelectLevel._1_1Preview
+                End If
+                Button12.Box = New RectangleF(64 * ScaleRatio, 206 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
+                If Button12.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                    MainGame.level = 1
+                    LevelPreview.Image = My.Resources.SelectLevel._1_2Preview
+                End If
+                Button13.Box = New RectangleF(64 * ScaleRatio, 272 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
+                If Button13.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                    MainGame.level = 2
+                    LevelPreview.Image = My.Resources.SelectLevel._1_3Preview
+                End If
+                Button14.Box = New RectangleF(64 * ScaleRatio, 338 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
+                If Button14.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                    MainGame.level = 3
+                    LevelPreview.Image = My.Resources.SelectLevel._1_4Preview
+                End If
+
+                LevelPreview.BoxSetting(201 * ScaleRatio, 140 * ScaleRatio, 518 * ScaleRatio, 247 * ScaleRatio)
+                LevelPreview.Draw(e)
+
+                LevelDoneButton.Box = New RectangleF(566 * ScaleRatio, 362 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
+                If LevelDoneButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                    State = "ToGame"
+                End If
+
             Case "ToGame"
                 State = "Game"
-                MainGame.CharacterReset(1.1, 1)
-                MainGame.MapSetting(32, 15)
                 MainGame.CameraReset()
-                MainGame.Map = MainGame_Map
 
-                Slime1.MonsterReset(0, 1, 18, 11, 5)
-                Slime2.MonsterReset(0, 1, 18, 8, 5)
-                Abyssosque1.MonsterReset(2, 3, 16.4, 1, 750)
-                Abyssosque2.MonsterReset(2, 3, 20.4, 1, 750)
-                Abyssosque3.MonsterReset(2, 3, 24.4, 1, 750)
+                Select Case MainGame.level
+                    Case 0
+                        MainGame.MapSetting(32, 15)
+                        MainGame.Map = MainGame1_Map
+                        MainGame.CharacterReset(1.1, 1)
+                        Slime1.MonsterReset(0, 1, 18, 11, 25)
+                        Slime2.MonsterReset(0, 1, 18, 8, 25)
+                        Abyssosque1.MonsterReset(2, 3, 16.4, 1, 750)
+                        Abyssosque2.MonsterReset(2, 3, 20.4, 1, 750)
+                        Abyssosque3.MonsterReset(2, 3, 24.4, 1, 750)
+                    Case 1
+                        MainGame.MapSetting(32, 15)
+                        MainGame.Map = MainGame2_Map
+                        MainGame.CharacterReset(1.1, 6)
+                        Abyssosque1.MonsterReset(2, 3, 5.4, 1, 750)
+                        Abyssosque2.MonsterReset(2, 3, 6.4, 1, 750)
+                        Abyssosque3.MonsterReset(2, 3, 9.4, 1, 750)
+                        Abyssosque4.MonsterReset(2, 3, 10.4, 1, 750)
+                        Boss.MonsterReset(4, 5, 19, 1, 3)
+                End Select
 
                 PlaySound(BGM, "Mozart Reqium Dies Irae.mp3", True)
                 SoundEffect.controls.stop()
                 LoadingShow = False
                 DimScreen = -1
 
+            Case "NextLevel"
+                State = "Game"
+                MainGame.CameraReset()
+
+                Select Case MainGame.level
+                    Case 0
+                        MainGame.MapSetting(32, 15)
+                        MainGame.Map = MainGame1_Map
+                        MainGame.CharacterReset(1.1, 1)
+                        Slime1.MonsterReset(0, 1, 18, 11, 25)
+                        Slime2.MonsterReset(0, 1, 18, 8, 25)
+                        Abyssosque1.MonsterReset(2, 3, 16.4, 1, 750)
+                        Abyssosque2.MonsterReset(2, 3, 20.4, 1, 750)
+                        Abyssosque3.MonsterReset(2, 3, 24.4, 1, 750)
+                    Case 1
+                        MainGame.MapSetting(32, 15)
+                        MainGame.Map = MainGame2_Map
+                        MainGame.CharacterReset(1.1, 6)
+                        Abyssosque1.MonsterReset(2, 3, 5.4, 1, 750)
+                        Abyssosque2.MonsterReset(2, 3, 6.4, 1, 750)
+                        Abyssosque3.MonsterReset(2, 3, 9.4, 1, 750)
+                        Abyssosque4.MonsterReset(2, 3, 10.4, 1, 750)
+                        Boss.MonsterReset(4, 5, 19, 1, 3)
+                End Select
+
             Case "Game"
                 MainGame.BoxSetting(0, 0, MyWidth, MyHeight)
                 MainGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed, SoundEffect.settings.volume)
 
-                Slime1.SyncWith(MainGame)
-                Slime1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
-                Slime2.SyncWith(MainGame)
-                Slime2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
-                Abyssosque1.SyncWith(MainGame)
-                Abyssosque1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
-                Abyssosque2.SyncWith(MainGame)
-                Abyssosque2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
-                Abyssosque3.SyncWith(MainGame)
-                Abyssosque3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                Select Case MainGame.level
+                    Case 0
+                        Slime1.SyncWith(MainGame)
+                        Slime1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Slime2.SyncWith(MainGame)
+                        Slime2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque1.SyncWith(MainGame)
+                        Abyssosque1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque2.SyncWith(MainGame)
+                        Abyssosque2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque3.SyncWith(MainGame)
+                        Abyssosque3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+
+                        If MainGame.CharacterX >= 30 And MainGame.CharacterY >= 6 Then
+                            MainGame.level = 1
+                            State = "NextLevel"
+                        End If
+                    Case 1
+                        Abyssosque1.SyncWith(MainGame)
+                        Abyssosque1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque2.SyncWith(MainGame)
+                        Abyssosque2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque3.SyncWith(MainGame)
+                        Abyssosque3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque4.SyncWith(MainGame)
+                        Abyssosque4.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Boss.SyncWith(MainGame)
+                        Boss.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                End Select
 
                 If MainGame.CharacterDied Then
                     If DimScreen = -1 Then
@@ -1685,7 +1860,10 @@ Public Class Form1
                            "Scale by " & CStr(ScaleRatio) & vbNewLine &
                            "FPS " & CStr(Math.Round(FPS, 2)) & vbNewLine &
                            "Frametime " & CStr(Math.Round(Frametime, 2)) & vbNewLine &
-                           "State " & State,
+                           "State " & State & vbNewLine & vbNewLine &
+                           "BGM.volume = " & CStr(BGM.settings.volume) & vbNewLine &
+                           "SE.volume = " & CStr(SoundEffect.settings.volume) & vbNewLine &
+                           "Ding.volume = " & CStr(Ding.settings.volume),
                            e, myfont, ScaleRatio)
 
             e.Graphics.DrawLine(New Pen(Color.Yellow), New PointF(0, MyHeight / 2), New PointF(MyWidth, MyHeight / 2))
@@ -1729,6 +1907,11 @@ Public Class Form1
         Abyssosque1.myfont = myfont
         Abyssosque2.myfont = myfont
         Abyssosque3.myfont = myfont
+        Abyssosque4.myfont = myfont
+        Boss.myfont = myfont
+
+        BGM.settings.volume = 100
+        SoundEffect.settings.volume = 100
     End Sub
 
     '處理視窗大小變化

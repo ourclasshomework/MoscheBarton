@@ -255,6 +255,12 @@
     <Content Include="Music\Mozart Reqium Dies Irae.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Music\加分.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Music\勝利結束.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Music\射出.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

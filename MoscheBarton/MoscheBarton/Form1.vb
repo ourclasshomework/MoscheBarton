@@ -270,6 +270,11 @@ Public Class Form1
         End Sub
     End Class
 
+    Public Function RandomInt(min As Double, max As Double) As Integer
+        Randomize()
+        Return Int(min + Rnd() * (max - min + 1))
+    End Function
+
     Public Class Game
         '遊戲畫面基本設定--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Public x As Double
@@ -282,6 +287,8 @@ Public Class Form1
         Public CameraX As Double = 0
         Public CameraY As Double = 0
         Private CameraSpeed As Double = 4.5 'pixel/每次更新
+
+        Public Pause As Boolean = False
 
         '遊戲音效的撥放器--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Public Attack As New WMPLib.WindowsMediaPlayer
@@ -341,7 +348,7 @@ Public Class Form1
 
         Private Character_Jump As Boolean = False
         Private Character_CanJump As Boolean = True
-        Private Const Character_Jump_Speed As Double = 0.095 '(格/每次更新)
+        Private Const Character_Jump_Speed As Double = 0.105 '(格/每次更新)
         Private Jump_Delay As Integer = 350 '(ms)
         Private Last_Jump As Long = 0
 
@@ -371,11 +378,20 @@ Public Class Form1
         Private CDBarFull As Double = 400
         Private CDShowValue As Double = 400
 
+        Public Function RandomInt(min As Double, max As Double) As Integer
+            Randomize()
+            Return Int(min + Rnd() * (max - min + 1))
+        End Function
+
         Public Sub CharacterReset(x As Double, y As Double)
             CharacterX = x
             CharacterY = y
-            CharacterHealth = CharacterMaxHealth
             CharacterDied = False
+            Pause = False
+        End Sub
+
+        Public Sub CharacterHealthReset()
+            CharacterHealth = CharacterMaxHealth
         End Sub
 
         Public Sub MapSetting(w As Integer, h As Integer)
@@ -390,9 +406,9 @@ Public Class Form1
             End Select
         End Sub
 
-        Public Sub CameraReset()
-            CameraX = 0
-            CameraY = 0
+        Public Sub CameraReset(Optional dx As Double = 0, Optional dy As Double = 0)
+            CameraX = dx
+            CameraY = dy
         End Sub
 
         Public Sub BoxSetting(ptx As Double, pty As Double, ptwidth As Double, ptheight As Double)
@@ -446,205 +462,209 @@ Public Class Form1
         End Sub
 
         Private Sub CharacterImgChange(ByRef e As PaintEventArgs, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean, ByRef ScaleRatio As Double)
-            If MousePressed Or Keyboard(Keys.E) Then
-                If Keyboard(Keys.A) Then
-                    CharacterWidth = 67.0383
-                    CharacterHeight = 84.5916
-                    CharacterAttackWidth = 27
-                    CharacterHitBoxWidth = 27 / 48
-                    CharacterHitBoxHeight = 84.5916 / 48
+            If Not Pause Then
+                If MousePressed Or Keyboard(Keys.E) Then
+                    If Keyboard(Keys.A) Then
+                        CharacterWidth = 67.0383
+                        CharacterHeight = 84.5916
+                        CharacterAttackWidth = 27
+                        CharacterHitBoxWidth = 27 / 48
+                        CharacterHitBoxHeight = 84.5916 / 48
 
-                    Select Case CharacterMoveAni
-                        Case 0
-                            CharacterImg = My.Resources.Game.CLAW0
-                        Case 1
-                            CharacterImg = My.Resources.Game.CLAW1
-                        Case 2
-                            CharacterImg = My.Resources.Game.CLAW2
-                    End Select
+                        Select Case CharacterMoveAni
+                            Case 0
+                                CharacterImg = My.Resources.Game.CLAW0
+                            Case 1
+                                CharacterImg = My.Resources.Game.CLAW1
+                            Case 2
+                                CharacterImg = My.Resources.Game.CLAW2
+                        End Select
 
-                    If CanShoot Then
-                        BulletDirection = True
-                    End If
-                End If
-
-                If Keyboard(Keys.D) Then
-                    CharacterWidth = 67.0383
-                    CharacterHeight = 84.5916
-                    CharacterAttackWidth = 0
-                    CharacterHitBoxWidth = 40.0383 / 48
-                    CharacterHitBoxHeight = 84.5916 / 48
-
-                    Select Case CharacterMoveAni
-                        Case 0
-                            CharacterImg = My.Resources.Game.CRAW0
-                        Case 1
-                            CharacterImg = My.Resources.Game.CRAW1
-                        Case 2
-                            CharacterImg = My.Resources.Game.CRAW2
-                    End Select
-
-                    If CanShoot Then
-                        BulletDirection = False
-                    End If
-                End If
-
-
-                If Not Keyboard(Keys.A) And Not Keyboard(Keys.D) Then
-                    CharacterWidth = 58.0383
-                    CharacterHeight = 84
-                    CharacterHitBoxWidth = 27 / 48
-                    CharacterHitBoxHeight = 84 / 48
-
-                    If CharacterDirection Then
-                        CharacterAttackWidth = -12.1249
-                        CharacterImg = My.Resources.Game.CRAN
-                        If CanShoot Then
-                            BulletDirection = False
-                        End If
-                    Else
-                        CharacterAttackWidth = 31.0383 - 12.1249
-                        CharacterImg = My.Resources.Game.CLAN
                         If CanShoot Then
                             BulletDirection = True
                         End If
                     End If
+
+                    If Keyboard(Keys.D) Then
+                        CharacterWidth = 67.0383
+                        CharacterHeight = 84.5916
+                        CharacterAttackWidth = 0
+                        CharacterHitBoxWidth = 40.0383 / 48
+                        CharacterHitBoxHeight = 84.5916 / 48
+
+                        Select Case CharacterMoveAni
+                            Case 0
+                                CharacterImg = My.Resources.Game.CRAW0
+                            Case 1
+                                CharacterImg = My.Resources.Game.CRAW1
+                            Case 2
+                                CharacterImg = My.Resources.Game.CRAW2
+                        End Select
+
+                        If CanShoot Then
+                            BulletDirection = False
+                        End If
+                    End If
+
+
+                    If Not Keyboard(Keys.A) And Not Keyboard(Keys.D) Then
+                        CharacterWidth = 58.0383
+                        CharacterHeight = 84
+                        CharacterHitBoxWidth = 27 / 48
+                        CharacterHitBoxHeight = 84 / 48
+
+                        If CharacterDirection Then
+                            CharacterAttackWidth = -12.1249
+                            CharacterImg = My.Resources.Game.CRAN
+                            If CanShoot Then
+                                BulletDirection = False
+                            End If
+                        Else
+                            CharacterAttackWidth = 31.0383 - 12.1249
+                            CharacterImg = My.Resources.Game.CLAN
+                            If CanShoot Then
+                                BulletDirection = True
+                            End If
+                        End If
+                    End If
+
+                    If CanShoot And Now.Ticks() / 10000 - LastShoot > ShootGap And Not HadShot Then
+                        LastShoot = Now.Ticks() / 10000
+                        If BulletDirection Then
+                            BulletX = CharacterX
+                        Else
+                            BulletX = CharacterX + 1.35
+                        End If
+                        BulletY = CharacterY + 0.9
+                        CanShoot = False
+                        HadShot = True
+
+                        CharacterShootX = CharacterX
+                        CharacterShootY = CharacterY
+
+                        If Keyboard(Keys.E) Then
+                            Attack.URL = My.Application.Info.DirectoryPath & "\Music\技能.mp3" '選擇路徑
+                            Attack.settings.setMode("loop", False) '設定是否循環
+                            Attack.controls.play() '播放
+                            CharacterHarmDamage = RandomInt(25, 40)
+
+                            If BulletDirection Then
+                                BulletImg = My.Resources.Game.AbilityL
+                                BulletWidth = 48
+                                BulletHeight = 33
+                            Else
+                                BulletImg = My.Resources.Game.AbilityR
+                                BulletWidth = 52
+                                BulletHeight = 33
+                            End If
+
+                            ShootGap = 1500
+                            CDBarFull = 1500
+
+                        ElseIf MousePressed Then
+                            Attack.URL = My.Application.Info.DirectoryPath & "\Music\射出.mp3" '選擇路徑
+                            Attack.settings.setMode("loop", False) '設定是否循環
+                            Attack.controls.play() '播放
+                            CharacterHarmDamage = RandomInt(5, 15)
+
+                            If BulletDirection Then
+                                BulletImg = My.Resources.Game.BulletL
+                            Else
+                                BulletImg = My.Resources.Game.BulletR
+                            End If
+
+                            BulletWidth = 12
+                            BulletHeight = 24
+
+                            ShootGap = 400
+                            CDBarFull = 400
+
+                        End If
+                    End If
+                Else
+                    HadShot = False
+                    If Keyboard(Keys.A) Then
+                        CharacterWidth = 39.1249
+                        CharacterHeight = 84.5916
+                        CharacterAttackWidth = 0
+                        CharacterHitBoxWidth = 39.1249 / 48
+                        CharacterHitBoxHeight = 84.5916 / 48
+
+                        Select Case CharacterMoveAni
+                            Case 0
+                                CharacterImg = My.Resources.Game.CLNW0
+                            Case 1
+                                CharacterImg = My.Resources.Game.CLNW1
+                            Case 2
+                                CharacterImg = My.Resources.Game.CLNW2
+                        End Select
+                    End If
+
+                    If Keyboard(Keys.D) Then
+                        CharacterWidth = 39.1249
+                        CharacterHeight = 84.5916
+                        CharacterAttackWidth = 0
+                        CharacterHitBoxWidth = 39.1249 / 48
+                        CharacterHitBoxHeight = 84.5916 / 48
+
+                        Select Case CharacterMoveAni
+                            Case 0
+                                CharacterImg = My.Resources.Game.CRNW0
+                            Case 1
+                                CharacterImg = My.Resources.Game.CRNW1
+                            Case 2
+                                CharacterImg = My.Resources.Game.CRNW2
+                        End Select
+                    End If
+
+                    If Not Keyboard(Keys.A) And Not Keyboard(Keys.D) Then
+                        CharacterWidth = 27
+                        CharacterHeight = 84
+                        CharacterAttackWidth = -12.1249
+                        CharacterHitBoxWidth = 27 / 48
+                        CharacterHitBoxHeight = 84.5916 / 48
+
+                        If CharacterDirection Then
+                            CharacterImg = My.Resources.Game.CRNN
+                        Else
+                            CharacterImg = My.Resources.Game.CLNN
+                        End If
+                    End If
                 End If
 
-                If CanShoot And Now.Ticks() / 10000 - LastShoot > ShootGap And Not HadShot Then
-                    LastShoot = Now.Ticks() / 10000
+                If CanShoot = False Then
                     If BulletDirection Then
-                        BulletX = CharacterX
+                        BulletX -= BulletSpeed
                     Else
-                        BulletX = CharacterX + 1.35
+                        BulletX += BulletSpeed
                     End If
-                    BulletY = CharacterY + 0.9
-                    CanShoot = False
-                    HadShot = True
 
-                    CharacterShootX = CharacterX
-                    CharacterShootY = CharacterY
-
-                    If Keyboard(Keys.E) Then
-                        Attack.URL = My.Application.Info.DirectoryPath & "\Music\技能.mp3" '選擇路徑
-                        Attack.settings.setMode("loop", False) '設定是否循環
-                        Attack.controls.play() '播放
-                        CharacterHarmDamage = 25
-
-                        If BulletDirection Then
-                            BulletImg = My.Resources.Game.AbilityL
-                            BulletWidth = 48
-                            BulletHeight = 33
-                        Else
-                            BulletImg = My.Resources.Game.AbilityR
-                            BulletWidth = 52
-                            BulletHeight = 33
-                        End If
-
-                        ShootGap = 1500
-                        CDBarFull = 1500
-
-                    ElseIf MousePressed Then
-                        Attack.URL = My.Application.Info.DirectoryPath & "\Music\射出.mp3" '選擇路徑
-                        Attack.settings.setMode("loop", False) '設定是否循環
-                        Attack.controls.play() '播放
-                        CharacterHarmDamage = 7
-
-                        If BulletDirection Then
-                            BulletImg = My.Resources.Game.BulletL
-                        Else
-                            BulletImg = My.Resources.Game.BulletR
-                        End If
-
-                        BulletWidth = 12
-                        BulletHeight = 24
-
-                        ShootGap = 400
-                        CDBarFull = 400
-
+                    BulletDetectY = Math.Floor(Map_Height - BulletY - 1)
+                    BulletDetectX = Math.Floor(BulletX + 0.25)
+                    If BulletDetectY >= Map_Height Then
+                        BulletDetectY = Map_Height - 1
                     End If
-                End If
-            Else
-                HadShot = False
-                If Keyboard(Keys.A) Then
-                    CharacterWidth = 39.1249
-                    CharacterHeight = 84.5916
-                    CharacterAttackWidth = 0
-                    CharacterHitBoxWidth = 39.1249 / 48
-                    CharacterHitBoxHeight = 84.5916 / 48
-
-                    Select Case CharacterMoveAni
-                        Case 0
-                            CharacterImg = My.Resources.Game.CLNW0
-                        Case 1
-                            CharacterImg = My.Resources.Game.CLNW1
-                        Case 2
-                            CharacterImg = My.Resources.Game.CLNW2
-                    End Select
-                End If
-
-                If Keyboard(Keys.D) Then
-                    CharacterWidth = 39.1249
-                    CharacterHeight = 84.5916
-                    CharacterAttackWidth = 0
-                    CharacterHitBoxWidth = 39.1249 / 48
-                    CharacterHitBoxHeight = 84.5916 / 48
-
-                    Select Case CharacterMoveAni
-                        Case 0
-                            CharacterImg = My.Resources.Game.CRNW0
-                        Case 1
-                            CharacterImg = My.Resources.Game.CRNW1
-                        Case 2
-                            CharacterImg = My.Resources.Game.CRNW2
-                    End Select
-                End If
-
-                If Not Keyboard(Keys.A) And Not Keyboard(Keys.D) Then
-                    CharacterWidth = 27
-                    CharacterHeight = 84
-                    CharacterAttackWidth = -12.1249
-                    CharacterHitBoxWidth = 27 / 48
-                    CharacterHitBoxHeight = 84.5916 / 48
-
-                    If CharacterDirection Then
-                        CharacterImg = My.Resources.Game.CRNN
-                    Else
-                        CharacterImg = My.Resources.Game.CLNN
+                    If BulletDetectY < 0 Then
+                        BulletDetectY = 0
+                    End If
+                    If BulletDetectX >= Map_Width Then
+                        BulletDetectX = Map_Width - 1
+                    End If
+                    If BulletDetectX < 0 Then
+                        BulletDetectX = 0
                     End If
                 End If
             End If
 
             If CanShoot = False Then
-                If BulletDirection Then
-                    BulletX -= BulletSpeed
-                Else
-                    BulletX += BulletSpeed
-                End If
-
-                BulletDetectY = Math.Floor(Map_Height - BulletY - 1)
-                BulletDetectX = Math.Floor(BulletX + 0.25)
-                If BulletDetectY >= Map_Height Then
-                    BulletDetectY = Map_Height - 1
-                End If
-                If BulletDetectY < 0 Then
-                    BulletDetectY = 0
-                End If
-                If BulletDetectX >= Map_Width Then
-                    BulletDetectX = Map_Width - 1
-                End If
-                If BulletDetectX < 0 Then
-                    BulletDetectX = 0
-                End If
-
-                If Map(BulletDetectY, BulletDetectX) > 0 Then
-                    CanShoot = True
-                End If
-
                 BulletBox = New RectangleF(x + CameraX + BulletX * 48 * ScaleRatio + 5 * ScaleRatio,
                                            y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - BulletY) * 48 * ScaleRatio - 24 * ScaleRatio - 10 * ScaleRatio,
                                            BulletWidth * ScaleRatio, BulletHeight * ScaleRatio)
                 e.Graphics.DrawImage(BulletImg, BulletBox)
+
+                If Map(BulletDetectY, BulletDetectX) > 0 Then
+                    CanShoot = True
+                End If
             End If
         End Sub
 
@@ -654,18 +674,20 @@ Public Class Form1
             '畫背景--------------------------------------------------------------------------------------------------------------------------------------------
             e.Graphics.DrawImage(BG, New RectangleF(x, y, width, height))
 
-            '偵測角色偏移以偏移鏡頭--------------------------------------------------------------------------------------------------------------------------------------------
-            If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX > x + width / 2 And x + width < x + Map_Width * 48 * ScaleRatio + CameraX Then
-                CameraX -= CameraSpeed * ScaleRatio
-            End If
-            If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX < x + width / 2 And x > x + CameraX Then
-                CameraX += CameraSpeed * ScaleRatio
-            End If
-            If y + height - CharacterY * 48 * ScaleRatio - CharacterBox.Height / 2 + CameraY < y + height / 2 And y > y + height - Map_Height * 48 * ScaleRatio + CameraY Then
-                CameraY += CameraSpeed * ScaleRatio
-            End If
-            If y + height - CharacterY * 48 * ScaleRatio - CharacterBox.Height / 2 + CameraY > y + height / 2 And y + height < y + height + CameraY Then
-                CameraY -= CameraSpeed * ScaleRatio
+            If Not Pause Then
+                '偵測角色偏移以偏移鏡頭--------------------------------------------------------------------------------------------------------------------------------------------
+                If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX > x + width / 2 And x + width < x + Map_Width * 48 * ScaleRatio + CameraX Then
+                    CameraX -= CameraSpeed * ScaleRatio
+                End If
+                If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX < x + width / 2 And x > x + CameraX Then
+                    CameraX += CameraSpeed * ScaleRatio
+                End If
+                If y + height - CharacterY * 48 * ScaleRatio - CharacterBox.Height / 2 + CameraY < y + height / 2 And y > y + height - Map_Height * 48 * ScaleRatio + CameraY Then
+                    CameraY += CameraSpeed * ScaleRatio
+                End If
+                If y + height - CharacterY * 48 * ScaleRatio - CharacterBox.Height / 2 + CameraY > y + height / 2 And y + height < y + height + CameraY Then
+                    CameraY -= CameraSpeed * ScaleRatio
+                End If
             End If
 
             '畫地圖--------------------------------------------------------------------------------------------------------------------------------------------
@@ -686,58 +708,60 @@ Public Class Form1
                 MapDy += 48 * ScaleRatio
             Next
 
-            '角色部分----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            If Not CharacterDied Then
-                '角色向右
-                If Keyboard(Keys.D) Then
-                    CharacterDirection = True
-                    CharacterX += Character_Speed
-                    Detect()
-                    If CharacterRight Then
-                        CharacterX = Math.Floor(CharacterX) + (1 - CharacterHitBoxWidth - 0.000001)
+            If Not Pause Then
+                '角色部分----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                If Not CharacterDied Then
+                    '角色向右
+                    If Keyboard(Keys.D) Then
+                        CharacterDirection = True
+                        CharacterX += Character_Speed
+                        Detect()
+                        If CharacterRight Then
+                            CharacterX = Math.Floor(CharacterX) + (1 - CharacterHitBoxWidth - 0.000001)
+                        End If
+                    End If
+                    '角色向左
+                    If Keyboard(Keys.A) Then
+                        CharacterDirection = False
+                        CharacterX -= Character_Speed
+                        Detect()
+                        If CharacterLeft Then
+                            CharacterX = Math.Floor(CharacterX) + 1
+                        End If
+                    End If
+                    '角色跳
+                    If Keyboard(Keys.Space) And Character_Jump = False And Character_CanJump And Now.Ticks() / 10000 - Last_Jump > Jump_Delay Then
+                        CharacterYv = Character_Jump_Speed
+                        Character_Jump = True
+                        Character_CanJump = False
+                        Last_Jump = Now.Ticks() / 10000
+                    End If
+                    If Not Keyboard(Keys.Space) Then
+                        Character_CanJump = True
                     End If
                 End If
-                '角色向左
-                If Keyboard(Keys.A) Then
-                    CharacterDirection = False
-                    CharacterX -= Character_Speed
-                    Detect()
-                    If CharacterLeft Then
-                        CharacterX = Math.Floor(CharacterX) + 1
+
+                '角色重力--------------------------------------------------------------------------------------------------------------------------------------------
+                CharacterYv -= G
+                CharacterY += CharacterYv * 5
+                Detect()
+                If CharacterTop And Character_Jump Then
+                    CharacterY = Math.Floor(CharacterY + CharacterHitBoxHeight) - CharacterHitBoxHeight
+                End If
+                Detect()
+                If CharacterBottom Then
+                    CharacterY = Math.Floor(CharacterY) + 1
+                    CharacterYv = 0
+                    Character_Jump = False
+                End If
+
+                '角色走路動畫--------------------------------------------------------------------------------------------------------------------------------------------
+                If Now.Ticks() / 10000 - CharacterMoveAniTimer > 100 Then
+                    CharacterMoveAniTimer = Now.Ticks() / 10000
+                    CharacterMoveAni += 1
+                    If CharacterMoveAni > 2 Then
+                        CharacterMoveAni = 0
                     End If
-                End If
-                '角色跳
-                If Keyboard(Keys.Space) And Character_Jump = False And Character_CanJump And Now.Ticks() / 10000 - Last_Jump > Jump_Delay Then
-                    CharacterYv = Character_Jump_Speed
-                    Character_Jump = True
-                    Character_CanJump = False
-                    Last_Jump = Now.Ticks() / 10000
-                End If
-                If Not Keyboard(Keys.Space) Then
-                    Character_CanJump = True
-                End If
-            End If
-
-            '角色重力--------------------------------------------------------------------------------------------------------------------------------------------
-            CharacterYv -= G
-            CharacterY += CharacterYv * 5
-            Detect()
-            If CharacterTop And Character_Jump Then
-                CharacterY = Math.Floor(CharacterY + CharacterHitBoxHeight) - CharacterHitBoxHeight
-            End If
-            Detect()
-            If CharacterBottom Then
-                CharacterY = Math.Floor(CharacterY) + 1
-                CharacterYv = 0
-                Character_Jump = False
-            End If
-
-            '角色走路動畫--------------------------------------------------------------------------------------------------------------------------------------------
-            If Now.Ticks() / 10000 - CharacterMoveAniTimer > 100 Then
-                CharacterMoveAniTimer = Now.Ticks() / 10000
-                CharacterMoveAni += 1
-                If CharacterMoveAni > 2 Then
-                    CharacterMoveAni = 0
                 End If
             End If
 
@@ -784,7 +808,7 @@ Public Class Form1
                                                                                                         37 * ScaleRatio * (CDShowValue / (CDBarFull / 1000)),
                                                                                                         5 * ScaleRatio))
 
-            If CharacterHealth <= 0 Then
+            If CharacterHealth <= 0 And Not Pause Then
                 CharacterDied = True
             End If
         End Sub
@@ -799,6 +823,8 @@ Public Class Form1
         Private Const G As Double = 9.80665 / 1000 '重力加速度常數 (格/ms^2)
         Private CameraX As Double = 0
         Private CameraY As Double = 0
+
+        Public Pause As Boolean = False
 
         '遊戲音效的撥放器--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Public Hit As New WMPLib.WindowsMediaPlayer
@@ -838,7 +864,6 @@ Public Class Form1
         Public MonsterImg As Bitmap = My.Resources.Game.SlimeL
         Public LeftId As Integer = 0
         Public RightId As Integer = 1
-        Public Monster_Texture As Bitmap() = {My.Resources.Game.SlimeL, My.Resources.Game.SlimeR}
         Public MonsterDirection As Boolean = False 'False = 右，True = 左
         Public Monster_Speed As Double = 0.03 '(格/每次更新)
         Public MonsterBox As RectangleF
@@ -850,7 +875,12 @@ Public Class Form1
         Public MonsterHealth As Double = 100
         Public MonsterMaxHealth As Double = 100
         Public MonsterDetectArea As Double = 3.5 '格
+        Public MonsterHasNotDied As Boolean = True
 
+        Public MonsterLaserDxLeft As Double = 0
+        Public MonsterLaserDxRight As Double = 0
+
+        Private Const BossLaserSpeed As Double = 0.25
         Public MonsterHarm As Double = 0
 
         Private CanDamageCharacter As Boolean = True
@@ -865,6 +895,8 @@ Public Class Form1
         Private MonsterAniIndex As Integer = 0
         Private MonsterAniTimeGap As Long = 250 'ms
         Private LastAnimation As Long = 0
+
+        Public BossShouldAttack As Boolean = True
 
         Public Sub SyncWith(ByRef Game As Game)
             With Game
@@ -884,6 +916,7 @@ Public Class Form1
                 BulletDirection = .BulletDirection
                 BulletX = .BulletX
                 BulletY = .BulletY
+                Pause = .Pause
             End With
         End Sub
 
@@ -938,6 +971,11 @@ Public Class Form1
             MonsterX = x
             MonsterY = y
             MonsterHarm = Harm
+            MonsterLaserDxLeft = 0
+            MonsterLaserDxRight = 0
+            MonsterHasNotDied = True
+            Pause = False
+            BossShouldAttack = True
         End Sub
 
         Private Sub MonsterAppearanceUpdate(id As Integer)
@@ -962,7 +1000,7 @@ Public Class Form1
                     MonsterImg = My.Resources.Game.AbyssClose
                     MonsterWidth = 65.3613
                     MonsterHeight = 82.7405
-                    MonsterMaxHealth = 1000
+                    MonsterMaxHealth = 200
                     Monster_Speed = 0.03
                     MonsterDetectArea = 3.5
                     DamageTimeGap = 1000
@@ -970,7 +1008,7 @@ Public Class Form1
                     MonsterImg = My.Resources.Game.AbyssOpen
                     MonsterWidth = 65.3613
                     MonsterHeight = 82.7405
-                    MonsterMaxHealth = 1000
+                    MonsterMaxHealth = 200
                     Monster_Speed = 0.03
                     MonsterDetectArea = 3.5
                     DamageTimeGap = 1000
@@ -978,98 +1016,49 @@ Public Class Form1
                     MonsterImg = My.Resources.Game.Boss
                     MonsterWidth = 115.1535
                     MonsterHeight = 205.513
-                    MonsterMaxHealth = 200
-                    Monster_Speed = 0.03
+                    MonsterMaxHealth = 250
+                    Monster_Speed = 0.06
                     MonsterDetectArea = 3.5
                     DamageTimeGap = 1000
                 Case 5
                     MonsterImg = My.Resources.Game.Boss
                     MonsterWidth = 115.1535
                     MonsterHeight = 205.513
-                    MonsterMaxHealth = 200
-                    Monster_Speed = 0.03
+                    MonsterMaxHealth = 250
+                    Monster_Speed = 0.06
+                    MonsterDetectArea = 3.5
+                    DamageTimeGap = 1000
+                Case 6
+                    MonsterImg = My.Resources.Game.BossMusicCore
+                    MonsterWidth = 42
+                    MonsterHeight = 30
+                    MonsterMaxHealth = 250
+                    Monster_Speed = 0.06
+                    MonsterDetectArea = 3.5
+                    DamageTimeGap = 1000
+                Case 7
+                    MonsterImg = My.Resources.Game.BossMusicCore
+                    MonsterWidth = 42
+                    MonsterHeight = 30
+                    MonsterMaxHealth = 250
+                    Monster_Speed = 0.06
                     MonsterDetectArea = 3.5
                     DamageTimeGap = 1000
             End Select
         End Sub
 
-        Public Sub Draw(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef CanShoot As Boolean, ByRef CharacterHealth As Double, ByRef CharacterDamage As Double, ByRef CharacterShowDamage As Boolean, ByRef CharacterLastShowDamage As Long, CharacterHarmDamage As Double, volume As Integer)
+        Public Sub Draw(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef CanShoot As Boolean, ByRef CharacterHealth As Double, ByRef CharacterDamage As Double, ByRef CharacterShowDamage As Boolean, ByRef CharacterLastShowDamage As Long, CharacterHarmDamage As Double, volume As Integer, ByRef xp As Integer)
+
             CharacterBeenHit.settings.volume = volume
             Hit.settings.volume = volume
 
             If MonsterHealth > 0 Then
                 'HowToPlay的史萊姆
-                If RightId = 1 Then
-                    '怪物擋右牆
-                    If CharacterX > MonsterX And CharacterX - MonsterX < MonsterDetectArea Then
-                        MonsterDirection = True
 
-                        MonsterX += Monster_Speed
-                        MonsterAppearanceUpdate(RightId)
-
-                        MonsterDetect()
-                        If MonsterRight Then
-                            MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
-                        End If
-                    End If
-
-                    '怪物擋左牆
-                    If CharacterX < MonsterX And MonsterX - CharacterX < MonsterDetectArea Then
-                        MonsterDirection = False
-
-                        MonsterX -= Monster_Speed
-                        MonsterAppearanceUpdate(LeftId)
-
-                        MonsterDetect()
-                        If MonsterLeft Then
-                            MonsterX = Math.Floor(MonsterX) + 1
-                        End If
-                    End If
-
-                    'Game的深淵怪物
-                ElseIf RightId = 3 Then
-                    '怪物擋右牆
-                    If CharacterX > MonsterX And CharacterX - MonsterX < MonsterDetectArea Then
-                        MonsterDirection = True
-
-                        If Now.Ticks() / 10000 - LastAnimation > MonsterAniTimeGap Then
-                            MonsterAniIndex += 1
-                            If MonsterAniIndex + LeftId > 3 Then
-                                MonsterAniIndex = 0
-                            End If
-                            MonsterAppearanceUpdate(MonsterAniIndex + LeftId)
-                            LastAnimation = Now.Ticks() / 10000
-                        End If
-
-                        MonsterDetect()
-                        If MonsterRight Then
-                            MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
-                        End If
-                    End If
-
-                    '怪物擋左牆
-                    If CharacterX < MonsterX And MonsterX - CharacterX < MonsterDetectArea Then
-                        MonsterDirection = False
-
-                        If Now.Ticks() / 10000 - LastAnimation > MonsterAniTimeGap Then
-                            MonsterAniIndex += 1
-                            If MonsterAniIndex + LeftId > 3 Then
-                                MonsterAniIndex = 0
-                            End If
-                            MonsterAppearanceUpdate(MonsterAniIndex + LeftId)
-                            LastAnimation = Now.Ticks() / 10000
-                        End If
-
-                        MonsterDetect()
-                        If MonsterLeft Then
-                            MonsterX = Math.Floor(MonsterX) + 1
-                        End If
-                    End If
-
-                    'Boss
-                ElseIf RightId = 5 Then
-                    '怪物擋右牆
-                    If CharacterX > MonsterX And CharacterX - MonsterX < MonsterDetectArea Then
+                If Not Pause Then
+                    If RightId = 1 Then
+                        '怪物擋右牆
+                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then
                             MonsterDirection = True
 
                             MonsterX += Monster_Speed
@@ -1082,7 +1071,7 @@ Public Class Form1
                         End If
 
                         '怪物擋左牆
-                        If CharacterX < MonsterX And MonsterX - CharacterX < MonsterDetectArea Then
+                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then
                             MonsterDirection = False
 
                             MonsterX -= Monster_Speed
@@ -1093,72 +1082,189 @@ Public Class Form1
                                 MonsterX = Math.Floor(MonsterX) + 1
                             End If
                         End If
+
+                        'Game的深淵怪物
+                    ElseIf RightId = 3 Then
+                        '怪物擋右牆
+                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then
+                            MonsterDirection = True
+
+                            If Now.Ticks() / 10000 - LastAnimation > MonsterAniTimeGap Then
+                                MonsterAniIndex += 1
+                                If MonsterAniIndex + LeftId > 3 Then
+                                    MonsterAniIndex = 0
+                                End If
+                                MonsterAppearanceUpdate(MonsterAniIndex + LeftId)
+                                LastAnimation = Now.Ticks() / 10000
+                            End If
+
+                            MonsterDetect()
+                            If MonsterRight Then
+                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
+                            End If
+                        End If
+
+                        '怪物擋左牆
+                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then
+                            MonsterDirection = False
+
+                            If Now.Ticks() / 10000 - LastAnimation > MonsterAniTimeGap Then
+                                MonsterAniIndex += 1
+                                If MonsterAniIndex + LeftId > 3 Then
+                                    MonsterAniIndex = 0
+                                End If
+                                MonsterAppearanceUpdate(MonsterAniIndex + LeftId)
+                                LastAnimation = Now.Ticks() / 10000
+                            End If
+
+                            MonsterDetect()
+                            If MonsterLeft Then
+                                MonsterX = Math.Floor(MonsterX) + 1
+                            End If
+                        End If
+
+                        'Boss
+                    ElseIf RightId = 5 Then
+                        '怪物擋右牆
+                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then
+                            MonsterDirection = True
+
+                            MonsterAppearanceUpdate(RightId)
+
+                            MonsterDetect()
+                            If MonsterRight Then
+                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
+                            End If
+                        End If
+
+                        '怪物擋左牆
+                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then
+                            MonsterDirection = False
+
+                            MonsterAppearanceUpdate(LeftId)
+
+                            MonsterDetect()
+                            If MonsterLeft Then
+                                MonsterX = Math.Floor(MonsterX) + 1
+                            End If
+                        End If
+
+                    ElseIf RightId = 7 Then
+                        '怪物擋右牆
+                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then
+                            MonsterDirection = True
+
+                            MonsterAppearanceUpdate(RightId)
+
+                            MonsterDetect()
+                            If MonsterRight Then
+                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
+                            End If
+                        End If
+
+                        '怪物擋左牆
+                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then
+                            MonsterDirection = False
+
+                            MonsterAppearanceUpdate(LeftId)
+
+                            MonsterDetect()
+                            If MonsterLeft Then
+                                MonsterX = Math.Floor(MonsterX) + 1
+                            End If
+                        End If
+                    End If
+                End If
+
+                If RightId = 5 And BossShouldAttack Then
+                    MonsterLaserDxLeft += BossLaserSpeed
+                    e.Graphics.DrawImage(My.Resources.Game.BossLaser, New RectangleF(x + MonsterX * 48 * ScaleRatio - 328.62 * ScaleRatio - MonsterLaserDxLeft * 48 * ScaleRatio + CameraX,
+                                                                                             y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio + 65 * ScaleRatio,
+                                                                                             328.62 * ScaleRatio,
+                                                                                             48 * ScaleRatio))
+
+                    If x + MonsterX * 48 * ScaleRatio - 328.62 * ScaleRatio - MonsterLaserDxLeft * 48 * ScaleRatio <= 0 Then
+                        MonsterLaserDxLeft = 0
                     End If
 
-                '怪物重力
-                MonsterYv -= G
-                MonsterY += MonsterYv * 5
-                MonsterDetect()
-                If MonsterTop Then
-                    MonsterY = Math.Floor(MonsterY + MonsterHeight / 48) - MonsterHeight / 48
+                    MonsterLaserDxRight += BossLaserSpeed
+                    e.Graphics.DrawImage(My.Resources.Game.BossLaser, New RectangleF(x + MonsterX * 48 * ScaleRatio + MonsterWidth * ScaleRatio + MonsterLaserDxRight * 48 * ScaleRatio + CameraX,
+                                                                                             y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio + 65 * ScaleRatio,
+                                                                                             328.62 * ScaleRatio,
+                                                                                             48 * ScaleRatio))
+                    If x + MonsterX * 48 * ScaleRatio - 328.62 * ScaleRatio + MonsterLaserDxRight * 48 * ScaleRatio >= x + Map_Width * 48 * ScaleRatio Then
+                        MonsterLaserDxRight = 0
+                    End If
                 End If
-                MonsterDetect()
-                If MonsterBottom Then
-                    MonsterY = Math.Floor(MonsterY) + 1
-                    MonsterYv = 0
+
+                If Not Pause Then
+                    '怪物重力
+                    MonsterYv -= G
+                    MonsterY += MonsterYv * 5
+                    MonsterDetect()
+                    If MonsterTop Then
+                        MonsterY = Math.Floor(MonsterY + MonsterHeight / 48) - MonsterHeight / 48
+                    End If
+                    MonsterDetect()
+                    If MonsterBottom Then
+                        MonsterY = Math.Floor(MonsterY) + 1
+                        MonsterYv = 0
+                    End If
                 End If
 
                 '設定怪物要畫的地方
                 MonsterBox = New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio,
-                                                y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio,
-                                                MonsterWidth * ScaleRatio,
-                                                MonsterHeight * ScaleRatio)
+                                                    y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio,
+                                                    MonsterWidth * ScaleRatio,
+                                                    MonsterHeight * ScaleRatio)
 
                 '畫怪物
                 e.Graphics.DrawImage(MonsterImg, MonsterBox)
 
-                '偵測子彈是否打到怪物
-                If CanShoot = False Then
-                    If BulletDirection = False And CharacterShootX < MonsterX And
-                       BulletX > MonsterX And
-                       ((MonsterY < BulletY And BulletY < MonsterY + MonsterHeight / 48) Or (MonsterY < BulletY + 0.5 And BulletY + 0.5 < MonsterY + MonsterHeight / 48)) Then
+                If Not Pause Then
+                    '偵測子彈是否打到怪物
+                    If CanShoot = False Then
+                        If BulletDirection = False And CharacterShootX < MonsterX And
+                               BulletX > MonsterX And
+                               ((MonsterY < BulletY And BulletY < MonsterY + MonsterHeight / 48) Or (MonsterY < BulletY + 0.5 And BulletY + 0.5 < MonsterY + MonsterHeight / 48)) Then
 
-                        Damage = CharacterHarmDamage
-                        MonsterHealth -= Damage
-                        LastShowDamage = Now.Ticks() / 10000
-                        ShowDamage = True
+                            Damage = CharacterHarmDamage
+                            MonsterHealth -= Damage
+                            LastShowDamage = Now.Ticks() / 10000
+                            ShowDamage = True
 
-                        Hit.URL = My.Application.Info.DirectoryPath & "\Music\打到.mp3" '選擇路徑
-                        Hit.settings.setMode("loop", False) '設定是否循環
-                        Hit.controls.play() '播放
+                            Hit.URL = My.Application.Info.DirectoryPath & "\Music\打到.mp3" '選擇路徑
+                            Hit.settings.setMode("loop", False) '設定是否循環
+                            Hit.controls.play() '播放
 
-                        CanShoot = True
-                    ElseIf BulletDirection = True And CharacterShootX > MonsterX And
-                           BulletX < MonsterX + MonsterWidth / 48 And
-                           ((MonsterY < BulletY And BulletY < MonsterY + MonsterHeight / 48) Or (MonsterY < BulletY + 0.5 And BulletY + 0.5 < MonsterY + MonsterHeight / 48)) Then
+                            CanShoot = True
+                        ElseIf BulletDirection = True And CharacterShootX > MonsterX And
+                                   BulletX < MonsterX + MonsterWidth / 48 And
+                                   ((MonsterY < BulletY And BulletY < MonsterY + MonsterHeight / 48) Or (MonsterY < BulletY + 0.5 And BulletY + 0.5 < MonsterY + MonsterHeight / 48)) Then
 
-                        Damage = CharacterHarmDamage
-                        MonsterHealth -= Damage
-                        LastShowDamage = Now.Ticks() / 10000
-                        ShowDamage = True
+                            Damage = CharacterHarmDamage
+                            MonsterHealth -= Damage
+                            LastShowDamage = Now.Ticks() / 10000
+                            ShowDamage = True
 
-                        Hit.URL = My.Application.Info.DirectoryPath & "\Music\打到.mp3" '選擇路徑
-                        Hit.settings.setMode("loop", False) '設定是否循環
-                        Hit.controls.play() '播放
+                            Hit.URL = My.Application.Info.DirectoryPath & "\Music\打到.mp3" '選擇路徑
+                            Hit.settings.setMode("loop", False) '設定是否循環
+                            Hit.controls.play() '播放
 
-                        CanShoot = True
+                            CanShoot = True
+                        End If
                     End If
                 End If
 
                 '畫怪物血量
                 e.Graphics.FillRectangle(Brushes.White, New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio + 5 * ScaleRatio,
-                                                                           y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio - 10 * ScaleRatio,
-                                                                           MonsterWidth * ScaleRatio,
-                                                                           5 * ScaleRatio))
+                                                                               y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio - 10 * ScaleRatio,
+                                                                               MonsterWidth * ScaleRatio,
+                                                                               5 * ScaleRatio))
                 e.Graphics.FillRectangle(Brushes.Red, New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio + 5 * ScaleRatio,
-                                                                           y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio - 10 * ScaleRatio,
-                                                                           MonsterWidth * ScaleRatio * MonsterHealth / MonsterMaxHealth,
-                                                                           5 * ScaleRatio))
+                                                                               y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio - 10 * ScaleRatio,
+                                                                               MonsterWidth * ScaleRatio * MonsterHealth / MonsterMaxHealth,
+                                                                               5 * ScaleRatio))
                 '顯示傷害
                 If ShowDamage Then
                     If Now.Ticks() / 10000 - LastShowDamage > ShowDamageTime Then
@@ -1170,23 +1276,62 @@ Public Class Form1
                     End If
                 End If
 
-                '傷害角色
-                If CanDamageCharacter And CharacterX - 0.2 < MonsterX + MonsterWidth / 48 / 2 And MonsterX + MonsterWidth / 48 / 2 < CharacterX + 1 And (CharacterY < MonsterY + MonsterHeight / 48 / 2 And MonsterY + MonsterHeight / 48 / 2 < CharacterY + 1.8) Then
-                    CharacterDamage = MonsterHarm
-                    CharacterHealth -= CharacterDamage
-                    CharacterShowDamage = True
-                    CharacterLastShowDamage = Now.Ticks() / 10000
-                    LastDamageCharacter = Now.Ticks() / 10000
+                If Not Pause Then
+                    '傷害角色
+                    If CanDamageCharacter And
+                            CharacterX - 0.2 < MonsterX + MonsterWidth / 48 / 2 And MonsterX + MonsterWidth / 48 / 2 < CharacterX + 1 And
+                            ((CharacterY < MonsterY + MonsterHeight / 48 / 2 And MonsterY + MonsterHeight / 48 / 2 < CharacterY + 1.8) Or ((CharacterY < MonsterY + 0.1 And MonsterY + 0.1 < CharacterY + 1.8))) Then
 
-                    CharacterBeenHit.URL = My.Application.Info.DirectoryPath & "\Music\被打.mp3" '選擇路徑
-                    CharacterBeenHit.settings.setMode("loop", False) '設定是否循環
-                    CharacterBeenHit.controls.play() '播放
+                        CharacterDamage = MonsterHarm
+                        CharacterHealth -= CharacterDamage
+                        CharacterShowDamage = True
+                        CharacterLastShowDamage = Now.Ticks() / 10000
+                        LastDamageCharacter = Now.Ticks() / 10000
 
-                    CanDamageCharacter = False
+                        CharacterBeenHit.URL = My.Application.Info.DirectoryPath & "\Music\被打.mp3" '選擇路徑
+                        CharacterBeenHit.settings.setMode("loop", False) '設定是否循環
+                        CharacterBeenHit.controls.play() '播放
+
+                        CanDamageCharacter = False
+                    End If
+
+                    If RightId = 5 And BossShouldAttack And
+                            (((MonsterX - MonsterLaserDxLeft - 328.62 / 48 < CharacterX - 0.2 And CharacterX - 0.2 < MonsterX - MonsterLaserDxLeft) Or (MonsterX - MonsterLaserDxLeft - 328.62 / 48 < CharacterX + 1 And CharacterX + 1 < MonsterX - MonsterLaserDxLeft)) Or
+                            ((MonsterX + MonsterLaserDxRight < CharacterX - 0.2 And CharacterX - 0.2 < MonsterX + MonsterLaserDxRight + 328.62 / 48) Or (MonsterX + MonsterLaserDxRight < CharacterX + 1 And CharacterX + 1 < MonsterX + MonsterLaserDxRight + 328.62 / 48))) And
+                            ((MonsterY + MonsterHeight / 48 - 65 / 48 - 1 < CharacterY + 1.8 And CharacterY + 1.8 < MonsterY + MonsterHeight / 48 - 65 / 48) Or (MonsterY + MonsterHeight / 48 - 65 / 48 - 1 < CharacterY + 0.1 And CharacterY + 0.1 < MonsterY + MonsterHeight / 48 - 65 / 48)) Then
+
+                        CharacterDamage = MonsterHarm
+                        CharacterHealth -= CharacterDamage
+                        CharacterShowDamage = True
+                        CharacterLastShowDamage = Now.Ticks() / 10000
+                        LastDamageCharacter = Now.Ticks() / 10000
+
+                        CharacterBeenHit.URL = My.Application.Info.DirectoryPath & "\Music\被打.mp3" '選擇路徑
+                        CharacterBeenHit.settings.setMode("loop", False) '設定是否循環
+                        CharacterBeenHit.controls.play() '播放
+                    End If
+
+                    If Now.Ticks() / 10000 - LastDamageCharacter > DamageTimeGap Then
+                        CanDamageCharacter = True
+                    End If
                 End If
 
-                If Now.Ticks() / 10000 - LastDamageCharacter > DamageTimeGap Then
-                    CanDamageCharacter = True
+            ElseIf MonsterHealth <= 0 And MonsterHasNotDied Then
+                MonsterHasNotDied = False
+                Select Case RightId
+                    Case 1
+                        xp += SlimeXp
+                    Case 3
+                        xp += AbyssXp
+                    Case 5
+                        xp += BossXp
+                    Case 7
+                        xp += BossMusicCoreXp
+                End Select
+                If RightId <> 5 Then
+                    Hit.URL = My.Application.Info.DirectoryPath & "\Music\加分.mp3" '選擇路徑
+                    Hit.settings.setMode("loop", False) '設定是否循環
+                    Hit.controls.play() '播放
                 End If
             End If
         End Sub
@@ -1195,7 +1340,7 @@ Public Class Form1
     '快速調整設定區--------------------------------------------------------------------------------------------------------------------------------------------
     Dim State As String = "Start" '整個程式的起始點
 
-    Const Version As String = "Insider Preview 1.5"
+    Const Version As String = "Release 1.0"
     Const Copyright As String = "III Studio 製作"
 
     Const DefaultWidth As Integer = 800 '預設的寬度
@@ -1206,6 +1351,11 @@ Public Class Form1
     Const OpeningGapSpeed As Double = 1000 '開場動畫淡入淡出的速度 (ms)
     Const OpeningSpeed As Integer = 2000 '每個開場動畫持續的時間 (ms)
     Const ShowDamageTime As Double = 250 '顯示傷害數值的時間 (ms)
+
+    Const SlimeXp As Integer = 30
+    Const AbyssXp As Integer = 75
+    Const BossXp As Integer = 300
+    Const BossMusicCoreXp As Integer = 300
 
     '初始化Timer--------------------------------------------------------------------------------------------------------------------------------------------
     Dim ScreenRefresh As New Timer(1)
@@ -1356,38 +1506,96 @@ Public Class Form1
                                       {1, 0, 0, 0, 0, 1, 1, 3, 0, 0, 0, 3, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1},
                                       {1, 0, 0, 0, 1, 1, 1, 3, 0, 0, 0, 3, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1},
                                       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
-    Dim MainGame As New Game With {.Map = MainGame1_Map, .Map_Width = 32, .Map_Height = 15, .BG = My.Resources.Game.Day}
-
-    Dim Slime1 As New Monster With {.MonsterX = 18, .MonsterY = 11}
-    Dim Slime2 As New Monster With {.MonsterX = 18, .MonsterY = 8}
-    Dim Abyssosque1 As New Monster With {.MonsterX = 16.4, .MonsterY = 4}
-    Dim Abyssosque2 As New Monster With {.MonsterX = 20.4, .MonsterY = 4}
-    Dim Abyssosque3 As New Monster With {.MonsterX = 24.4, .MonsterY = 4}
 
     Dim MainGame2_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-                                       {1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 0, 0, 0, 0, 2, 0, 0, 3, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 1, 1, 1, 2, 2, 0, 0, 3, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 1, 1, 1, 3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 1, 1, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 1, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-                                       {1, 1, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -5, 1, 0, 0, 1},
+                                       {1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, -5, 1},
+                                       {1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                                       {1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 3, 0, 0, 0, -4, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 3, 2, 0, 0, -4, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 3, 1, 1, 0, 0, 0, 3, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 1, 1, 1, 0, 0, 3, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 3, 1, 1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 1, 1, 1, 2, 2, 0, 0, 1, 1, 0, 2, 2, 2, 3, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
+                                       {1, 1, 1, 1, 3, 0, 0, 0, 0, 1, 0, 0, 3, 0, 3, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1},
+                                       {1, 1, 1, 0, 3, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1},
+                                       {1, 1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1},
+                                       {1, 1, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 3, 0, 3, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1},
                                        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
 
-    Dim Abyssosque4 As New Monster With {.MonsterX = 16.4, .MonsterY = 4}
-    Dim Boss As New Monster With {.MonsterX = 19, .MonsterY = 1}
+    Dim MainGame3_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 0, 0, 0, 2, 2, 2, 3, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1},
+                                       {1, 1, 0, 0, 0, 0, 0, 3, 1, 1, 0, 0, 1, 2, 2, 2, 2, 2, 2, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1},
+                                       {1, 1, 1, 0, 0, 0, 0, 3, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 1},
+                                       {1, 1, 1, 1, 0, 0, 0, 3, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 1, 3, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 0, 1},
+                                       {1, 0, 0, 0, 0, 1, 1, 3, 1, 2, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, -5, 1},
+                                       {1, 0, 0, 0, 1, 1, 1, 3, 2, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 2, 2, 0, 0, 3, 0, 0, 0, 0, 2, 2, 2, 1},
+                                       {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 2, 2, 0, 0, 0, 0, 0, 1},
+                                       {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 2, 2, 2, 0, 0, 0, 0, 1},
+                                       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
 
+    Dim MainGame4_Map As Integer(,) = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                                       {1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+                                       {1, 1, 1, 1, 0, 0, 1, 3, 0, 0, 3, 0, 0, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 0, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 1, 3, 2, 0, 3, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 2, 1},
+                                       {1, 0, 0, 0, 0, 1, 1, 3, 0, 0, 3, 2, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 2, 1},
+                                       {1, 0, 0, 0, 1, 1, 1, 3, 0, 0, 3, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 2, 2, 2, 1},
+                                       {1, 1, 0, 0, 0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 1},
+                                       {1, 1, 1, 0, 0, 0, 0, 3, 0, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 2, 0, 0, 0, 0, 1},
+                                       {1, 1, 1, 1, 0, 0, 0, 3, 0, 0, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 0, 0, 0, 1},
+                                       {1, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1},
+                                       {1, 0, 0, 0, 0, 1, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1},
+                                       {1, 0, 0, 0, 1, 1, 1, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 1},
+                                       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
+
+
+    Dim MainGame As New Game With {.Map = MainGame1_Map, .Map_Width = 32, .Map_Height = 15, .BG = My.Resources.Game.Day}
+
+    Dim Slime1 As New Monster
+    Dim Slime2 As New Monster
+    Dim Slime3 As New Monster
+    Dim Abyssosque1 As New Monster
+    Dim Abyssosque2 As New Monster
+    Dim Abyssosque3 As New Monster
+    Dim Abyssosque4 As New Monster
+    Dim Abyssosque5 As New Monster
+    Dim Abyssosque6 As New Monster
+    Dim Abyssosque7 As New Monster
+    Dim Abyssosque8 As New Monster
+
+    Dim Boss As New Monster
+    Dim BossMusicCore As New Monster
+
+    Dim Xp As Integer = 0
+    Dim XpText As New MyTextBox With {.font = "Cubic11", .font_size = 18.75, .color = Color.Green, .LineAlign = "Center", .Align = "Center"}
+    Dim XpBG As New MyPictureBox With {.Image = My.Resources.Game.XPBG}
+
+    Dim PauseButton As New MyButton With {.Image = My.Resources.Game.PauseButton, .PressedImage = My.Resources.Game.PauseButtonA, .Player = Ding}
     'DeadMenu--------------------------------------------------------------------------------------------------------------------------------------------
     Dim ShowDeathMenu As Boolean = False
+    Dim DiedMessageArray As String() = {"讓家族...蒙羞..了....", "末日審判見~", "見上帝吧！", "我們懷念你", "Rest In Peace"}
+    Dim DiedMessage As String
     Dim DiedText As New MyTextBox With {.font = "Cubic11", .font_size = 30, .color = Color.White, .LineAlign = "Center", .Align = "Center"}
+    Dim DiedXpText As New MyTextBox With {.font = "Cubic11", .font_size = 18.75, .color = Color.White, .LineAlign = "Center", .Align = "Center"}
     Dim ReplayButton As New MyButton With {.Image = My.Resources.DiedMenu.Replay, .PressedImage = My.Resources.DiedMenu.ReplayActivated, .Player = Ding}
     Dim EndButton As New MyButton With {.Image = My.Resources.DiedMenu._End, .PressedImage = My.Resources.DiedMenu.EndActivated, .Player = Ding}
+
+    'Pause----------------------------------------------------------------------------------------------------------------------------------------------
+    Dim Pause As New MyTextBox With {.font = "Cubic11", .font_size = 30, .color = Color.White, .LineAlign = "Center", .Align = "Center"}
+    Dim ToMenuButton As New MyButton With {.Image = My.Resources.Game.ToMenu, .PressedImage = My.Resources.Game.ToMenuA, .Player = Ding}
+    Dim ContinueButton As New MyButton With {.Image = My.Resources.Game._Continue, .PressedImage = My.Resources.Game.ContinueA, .Player = Ding}
+
+    'EndGame----------------------------------------------------------------------------------------------------------------------------
+    Dim EndGameStartTime As Long = 0
+    Dim EndGameText As New MyTextBox With {.font = "Cubic11", .font_size = 30, .color = Color.White, .LineAlign = "Center", .Align = "Center"}
+    Dim EndGameXpText As New MyTextBox With {.font = "Cubic11", .font_size = 18.75, .color = Color.White, .LineAlign = "Center", .Align = "Center"}
 
     Private Sub Form1_Paint(sender As Object, e As PaintEventArgs) Handles MyBase.Paint
         If BGisOn Then
@@ -1484,6 +1692,7 @@ Public Class Form1
                 GameSubLogo.Draw("Mosche Barton", e, myfont, ScaleRatio)
 
             Case "ToMenu"
+                BGisOn = True
                 State = "Menu"
                 SoundEffect.controls.stop()
                 PlaySound(BGM, "MenuBGM.wav", True)
@@ -1531,7 +1740,11 @@ Public Class Form1
                     DemoGame.CharacterReset(1.1, 1)
                     DemoGame.MapSetting(16, 8)
                     DemoGame.CameraReset()
+                    DemoGame.CharacterHealthReset()
                     DemoGame.Map = HowToPlay1_Map
+
+                    NextPageButton.Image = My.Resources.HowToPlay.NextPage
+                    NextPageButton.PressedImage = My.Resources.HowToPlay.NextPage_Pressed
                 End If
 
                 SettingButton.Box = New RectangleF(MyWidth - 258 * ScaleRatio, 245 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
@@ -1573,8 +1786,13 @@ Public Class Form1
                     DemoGame.CharacterReset(1.1, 1)
                     DemoGame.MapSetting(14, 8)
                     DemoGame.CameraReset()
+                    DemoGame.CharacterHealthReset()
                     DemoGame.Map = HowToPlay2_Map
+
                     DemoMonster.MonsterReset(0, 1, 9, 1, 0)
+
+                    NextPageButton.Image = My.Resources.Game.ToMenu
+                    NextPageButton.PressedImage = My.Resources.Game.ToMenuA
                 End If
 
             Case "HowToPlay2"
@@ -1582,7 +1800,7 @@ Public Class Form1
                 DemoGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed, SoundEffect.settings.volume)
 
                 DemoMonster.SyncWith(DemoGame)
-                DemoMonster.Draw(e, ScaleRatio, DemoGame.CanShoot, DemoGame.CharacterHealth, DemoGame.Damage, DemoGame.ShowDamage, DemoGame.LastShowDamage, DemoGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                DemoMonster.Draw(e, ScaleRatio, DemoGame.CanShoot, DemoGame.CharacterHealth, DemoGame.Damage, DemoGame.ShowDamage, DemoGame.LastShowDamage, DemoGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
 
                 HowToPlay_Img.BoxSetting(MyWidth / 2 - 702 / 2 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, 702 * ScaleRatio, 382.811 * ScaleRatio)
                 HowToPlay_Img.Draw(e)
@@ -1685,6 +1903,7 @@ Public Class Form1
                 e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(DimScreen, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
 
             Case "ToSelectLevel"
+                BGM.controls.stop()
                 SoundEffect.controls.stop()
                 LoadingShow = False
 
@@ -1722,29 +1941,11 @@ Public Class Form1
                 End If
 
             Case "ToGame"
-                State = "Game"
-                MainGame.CameraReset()
+                State = "NextLevel"
+                Xp = 0
+                MainGame.Pause = False
 
-                Select Case MainGame.level
-                    Case 0
-                        MainGame.MapSetting(32, 15)
-                        MainGame.Map = MainGame1_Map
-                        MainGame.CharacterReset(1.1, 1)
-                        Slime1.MonsterReset(0, 1, 18, 11, 25)
-                        Slime2.MonsterReset(0, 1, 18, 8, 25)
-                        Abyssosque1.MonsterReset(2, 3, 16.4, 1, 750)
-                        Abyssosque2.MonsterReset(2, 3, 20.4, 1, 750)
-                        Abyssosque3.MonsterReset(2, 3, 24.4, 1, 750)
-                    Case 1
-                        MainGame.MapSetting(32, 15)
-                        MainGame.Map = MainGame2_Map
-                        MainGame.CharacterReset(1.1, 6)
-                        Abyssosque1.MonsterReset(2, 3, 5.4, 1, 750)
-                        Abyssosque2.MonsterReset(2, 3, 6.4, 1, 750)
-                        Abyssosque3.MonsterReset(2, 3, 9.4, 1, 750)
-                        Abyssosque4.MonsterReset(2, 3, 10.4, 1, 750)
-                        Boss.MonsterReset(4, 5, 19, 1, 3)
-                End Select
+                MainGame.CharacterHealthReset()
 
                 PlaySound(BGM, "Mozart Reqium Dies Irae.mp3", True)
                 SoundEffect.controls.stop()
@@ -1753,62 +1954,199 @@ Public Class Form1
 
             Case "NextLevel"
                 State = "Game"
-                MainGame.CameraReset()
 
                 Select Case MainGame.level
                     Case 0
+                        MainGame.CameraReset()
                         MainGame.MapSetting(32, 15)
                         MainGame.Map = MainGame1_Map
                         MainGame.CharacterReset(1.1, 1)
-                        Slime1.MonsterReset(0, 1, 18, 11, 25)
-                        Slime2.MonsterReset(0, 1, 18, 8, 25)
+                        Slime1.MonsterReset(0, 1, RandomInt(12, 23), 11, RandomInt(20, 30))
+                        Slime2.MonsterReset(0, 1, RandomInt(12, 23), 8, RandomInt(20, 30))
                         Abyssosque1.MonsterReset(2, 3, 16.4, 1, 750)
                         Abyssosque2.MonsterReset(2, 3, 20.4, 1, 750)
                         Abyssosque3.MonsterReset(2, 3, 24.4, 1, 750)
                     Case 1
+                        MainGame.CameraReset()
                         MainGame.MapSetting(32, 15)
                         MainGame.Map = MainGame2_Map
                         MainGame.CharacterReset(1.1, 6)
+                        Slime1.MonsterReset(0, 1, 8.5, 6, RandomInt(20, 30))
+                        Slime2.MonsterReset(0, 1, 13.5, 11, RandomInt(20, 30))
+                        Slime3.MonsterReset(0, 1, 24.5, 4, RandomInt(20, 30))
                         Abyssosque1.MonsterReset(2, 3, 5.4, 1, 750)
                         Abyssosque2.MonsterReset(2, 3, 6.4, 1, 750)
                         Abyssosque3.MonsterReset(2, 3, 9.4, 1, 750)
                         Abyssosque4.MonsterReset(2, 3, 10.4, 1, 750)
-                        Boss.MonsterReset(4, 5, 19, 1, 3)
+                        Abyssosque5.MonsterReset(2, 3, 22.4, 1, 750)
+                        Abyssosque6.MonsterReset(2, 3, 26.4, 1, 750)
+                    Case 2
+                        MainGame.CameraReset(-1530 * ScaleRatio + MyWidth)
+                        MainGame.MapSetting(32, 15)
+                        MainGame.Map = MainGame3_Map
+                        MainGame.CharacterReset(30.1, 1)
+                        Slime1.MonsterReset(0, 1, RandomInt(5, 8), 1, RandomInt(20, 30))
+                        Slime2.MonsterReset(0, 1, RandomInt(5, 8), 11, RandomInt(20, 30))
+                        Slime3.MonsterReset(0, 1, RandomInt(12, 19), 11, RandomInt(20, 30))
+                        Abyssosque1.MonsterReset(2, 3, 13.4, 1, 750)
+                        Abyssosque2.MonsterReset(2, 3, 16.4, 1, 750)
+                        Abyssosque3.MonsterReset(2, 3, 17.4, 1, 750)
+                        Abyssosque4.MonsterReset(2, 3, 20.4, 1, 750)
+                        Abyssosque5.MonsterReset(2, 3, 21.4, 1, 750)
+                        Abyssosque6.MonsterReset(2, 3, 10.4, 8, 750)
+                        Abyssosque7.MonsterReset(2, 3, 20.4, 9, 750)
+                        Abyssosque8.MonsterReset(2, 3, 24.4, 9, 750)
+                    Case 3
+                        MainGame.CameraReset()
+                        MainGame.MapSetting(33, 15)
+                        MainGame.Map = MainGame4_Map
+                        MainGame.CharacterReset(1.1, 1)
+
+                        Boss.MonsterReset(4, 5, 18.1, 5, 1.5)
+                        BossMusicCore.MonsterReset(6, 7, 21, 12, 20)
+
+                        Slime1.MonsterReset(0, 1, RandomInt(15, 26), 1, RandomInt(20, 30))
+                        Slime2.MonsterReset(0, 1, RandomInt(15, 26), 1, RandomInt(20, 30))
+                        Abyssosque1.MonsterReset(2, 3, RandomInt(15, 26), 1, 750)
+                        Abyssosque2.MonsterReset(2, 3, RandomInt(15, 26), 1, 750)
+                        Abyssosque3.MonsterReset(2, 3, 17, 11, 750)
+                        Abyssosque4.MonsterReset(2, 3, 19, 11, 750)
+                        Abyssosque5.MonsterReset(2, 3, 23, 11, 750)
+                        Abyssosque6.MonsterReset(2, 3, 25, 11, 750)
                 End Select
 
             Case "Game"
                 MainGame.BoxSetting(0, 0, MyWidth, MyHeight)
-                MainGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed, SoundEffect.settings.volume)
+                    MainGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed, SoundEffect.settings.volume)
 
                 Select Case MainGame.level
                     Case 0
                         Slime1.SyncWith(MainGame)
-                        Slime1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Slime1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Slime2.SyncWith(MainGame)
-                        Slime2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Slime2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque1.SyncWith(MainGame)
-                        Abyssosque1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque2.SyncWith(MainGame)
-                        Abyssosque2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque3.SyncWith(MainGame)
-                        Abyssosque3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
 
                         If MainGame.CharacterX >= 30 And MainGame.CharacterY >= 6 Then
                             MainGame.level = 1
                             State = "NextLevel"
                         End If
                     Case 1
+                        Slime1.SyncWith(MainGame)
+                        Slime1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Slime2.SyncWith(MainGame)
+                        Slime2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Slime3.SyncWith(MainGame)
+                        Slime3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque1.SyncWith(MainGame)
-                        Abyssosque1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque2.SyncWith(MainGame)
-                        Abyssosque2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque3.SyncWith(MainGame)
-                        Abyssosque3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque4.SyncWith(MainGame)
-                        Abyssosque4.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Abyssosque4.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque5.SyncWith(MainGame)
+                        Abyssosque5.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque6.SyncWith(MainGame)
+                        Abyssosque6.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        If MainGame.CharacterX >= 30 And MainGame.CharacterY >= 12 Then
+                            MainGame.level = 2
+                            State = "NextLevel"
+                        End If
+                    Case 2
+                        Slime1.SyncWith(MainGame)
+                        Slime1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Slime2.SyncWith(MainGame)
+                        Slime2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Slime3.SyncWith(MainGame)
+                        Slime3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque1.SyncWith(MainGame)
+                        Abyssosque1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque2.SyncWith(MainGame)
+                        Abyssosque2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque3.SyncWith(MainGame)
+                        Abyssosque3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque4.SyncWith(MainGame)
+                        Abyssosque4.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque5.SyncWith(MainGame)
+                        Abyssosque5.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque6.SyncWith(MainGame)
+                        Abyssosque6.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque7.SyncWith(MainGame)
+                        Abyssosque7.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque8.SyncWith(MainGame)
+                        Abyssosque8.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        If MainGame.CharacterX >= 30 And MainGame.CharacterY >= 5 Then
+                            MainGame.level = 3
+                            State = "NextLevel"
+                        End If
+
+                    Case 3
                         Boss.SyncWith(MainGame)
-                        Boss.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume)
+                        Boss.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+
+                        BossMusicCore.SyncWith(MainGame)
+                        BossMusicCore.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+
+                        Slime1.SyncWith(MainGame)
+                        Slime1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Slime2.SyncWith(MainGame)
+                        Slime2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+
+                        Abyssosque1.SyncWith(MainGame)
+                        Abyssosque1.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque2.SyncWith(MainGame)
+                        Abyssosque2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque3.SyncWith(MainGame)
+                        Abyssosque3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque4.SyncWith(MainGame)
+                        Abyssosque4.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque5.SyncWith(MainGame)
+                        Abyssosque5.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        Abyssosque6.SyncWith(MainGame)
+                        Abyssosque6.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+
+                        If BossMusicCore.MonsterHealth >= 0 Then
+                            e.Graphics.DrawLine(New Pen(Color.Red, 3 * ScaleRatio),
+                                                New PointF(BossMusicCore.MonsterX * 48 * ScaleRatio + MainGame.CameraX + BossMusicCore.MonsterWidth / 2 * ScaleRatio,
+                                                           MainGame.CameraY + (MainGame.height - MainGame.Map_Height * 48 * ScaleRatio) + (MainGame.Map_Height - (BossMusicCore.MonsterY - 0.5)) * 48 * ScaleRatio - BossMusicCore.MonsterHeight * ScaleRatio),
+                                                New PointF(Boss.MonsterX * 48 * ScaleRatio + MainGame.CameraX + Boss.MonsterWidth / 2 * ScaleRatio,
+                                                           MainGame.CameraY + (MainGame.height - MainGame.Map_Height * 48 * ScaleRatio) + (MainGame.Map_Height - (Boss.MonsterY - 1.35)) * 48 * ScaleRatio - Boss.MonsterHeight * ScaleRatio))
+                        Else
+                            MainGame.Map(1, 21) = 0
+                            MainGame.Map(3, 21) = 0
+                            Boss.BossShouldAttack = False
+                        End If
+
+                        If Boss.MonsterHealth <= 0 Then
+                            If DimScreen = -1 Then
+                                DimScreen = 0
+                                PlaySound(BGM, "勝利結束.mp3", False)
+                                EndGameStartTime = Now.Ticks() / 10000
+                            End If
+
+                            DimScreen += 5
+                            If DimScreen >= 255 Then
+                                DimScreen = 255
+                                State = "EndGame"
+                                BGisOn = True
+                            End If
+
+                            e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(DimScreen, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
+                        End If
                 End Select
+
+                XpBG.Box = New RectangleF(0, MyHeight - 45.125 * ScaleRatio, 138 * ScaleRatio, 45.125 * ScaleRatio)
+                    XpBG.Draw(e)
+                    XpText.point.X = 138 / 2 * ScaleRatio
+                    XpText.point.Y = MyHeight - 45.125 / 2 * ScaleRatio + 2.5 * ScaleRatio
+                    XpText.Draw("分數 " & CStr(Xp), e, myfont, ScaleRatio)
 
                 If MainGame.CharacterDied Then
                     If DimScreen = -1 Then
@@ -1821,9 +2159,67 @@ Public Class Form1
                     If DimScreen >= 255 Then
                         DimScreen = 255
                         State = "DiedMenu"
+                        MainGame.CharacterHealthReset()
+                        DiedMessage = DiedMessageArray(RandomInt(0, DiedMessageArray.Length() - 1))
                     End If
 
                     e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(DimScreen, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
+                End If
+
+                If Not MainGame.Pause And Not MainGame.CharacterDied Then
+                    PauseButton.Box = New RectangleF(147 * ScaleRatio, MyHeight - 31 * ScaleRatio, 40.8475 * ScaleRatio, 21.4067 * ScaleRatio)
+                    If PauseButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                        BGM.controls.pause()
+                        BGisOn = True
+                        MainGame.Pause = True
+                    End If
+                End If
+
+                If MainGame.Pause And Not MainGame.CharacterDied Then
+                    e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(127, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
+
+                    ToMenuButton.Box = New RectangleF(MyWidth / 2 - 309 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
+                    If ToMenuButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                        State = "ToMenu"
+                    End If
+
+                    ContinueButton.Box = New RectangleF(MyWidth / 2 - 93 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
+                    If ContinueButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                        BGM.controls.play()
+                        BGisOn = False
+                        MainGame.Pause = False
+                    End If
+
+                    SettingButton.Box = New RectangleF(MyWidth / 2 + 123 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
+                    If SettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                        State = "InGameSetting"
+                    End If
+
+                    Pause.point.X = MyWidth / 2
+                    Pause.point.Y = MyHeight / 2 - 10 * ScaleRatio
+                    Pause.Draw("遊戲已暫停", e, myfont, ScaleRatio)
+                End If
+
+            Case "InGameSetting"
+                SettingText.point.X = 50 * ScaleRatio
+                SettingText.point.Y = 42 * ScaleRatio
+                SettingText.Draw("設定", e, myfont, ScaleRatio)
+
+                MusicSlider.NameSetting("音樂設定", "Cubic11", 16.98, 50 * ScaleRatio, 143 * ScaleRatio)
+                MusicSlider.Setting(177 * ScaleRatio, MyWidth - 105 * ScaleRatio, 143 * ScaleRatio)
+                MusicSlider.ValueTextSetting("Cubic11", 16.98, MyWidth - 88 * ScaleRatio, 143 * ScaleRatio)
+                MusicSlider.Draw(e, myfont, ScaleRatio, Ding, Mouse, MousePressed)
+                BGM.settings.volume = MusicSlider.value
+
+                SoundEffectSlider.NameSetting("音效設定", "Cubic11", 16.98, 50 * ScaleRatio, 198 * ScaleRatio)
+                SoundEffectSlider.Setting(177 * ScaleRatio, MyWidth - 105 * ScaleRatio, 198 * ScaleRatio)
+                SoundEffectSlider.ValueTextSetting("Cubic11", 16.98, MyWidth - 88 * ScaleRatio, 198 * ScaleRatio)
+                SoundEffectSlider.Draw(e, myfont, ScaleRatio, Ding, Mouse, MousePressed)
+                SoundEffect.settings.volume = SoundEffectSlider.value
+
+                DoneSettingButton.Box = New RectangleF(566 * ScaleRatio, 362 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
+                If DoneSettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                    State = "Game"
                 End If
 
             Case "DiedMenu"
@@ -1840,8 +2236,29 @@ Public Class Form1
                 End If
 
                 DiedText.point.X = MyWidth / 2
-                DiedText.point.Y = MyHeight / 2 - 24 * ScaleRatio
-                DiedText.Draw("讓家族...蒙羞..了....", e, myfont, ScaleRatio)
+                DiedText.point.Y = MyHeight / 2 - 48 * ScaleRatio
+                DiedText.Draw(DiedMessage, e, myfont, ScaleRatio)
+                DiedXpText.point.X = MyWidth / 2
+                DiedXpText.point.Y = MyHeight / 2 + 5 * ScaleRatio
+                DiedXpText.Draw("分數 " & CStr(Xp), e, myfont, ScaleRatio)
+
+            Case "EndGame"
+                If Now.Ticks() / 10000 - EndGameStartTime > 22000 Then
+                    State = "ToMenu"
+                End If
+
+                EndGameText.point.X = MyWidth / 2
+                EndGameText.point.Y = MyHeight / 2 - 48 * ScaleRatio
+                EndGameText.Draw("恭喜通關！", e, myfont, ScaleRatio)
+
+                EndGameXpText.point.X = MyWidth / 2
+                EndGameXpText.point.Y = MyHeight / 2 + 5 * ScaleRatio
+                EndGameXpText.Draw("分數 " & CStr(Xp), e, myfont, ScaleRatio)
+
+                ToMenuButton.Box = New RectangleF(MyWidth / 2 - 187 / 2 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
+                If ToMenuButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                    State = "ToMenu"
+                End If
 
             Case "Exit"
                 WMPExit(BGM)
@@ -1904,11 +2321,17 @@ Public Class Form1
         MainGame.myfont = myfont
         Slime1.myfont = myfont
         Slime2.myfont = myfont
+        Slime3.myfont = myfont
         Abyssosque1.myfont = myfont
         Abyssosque2.myfont = myfont
         Abyssosque3.myfont = myfont
         Abyssosque4.myfont = myfont
+        Abyssosque5.myfont = myfont
+        Abyssosque6.myfont = myfont
+        Abyssosque7.myfont = myfont
+        Abyssosque8.myfont = myfont
         Boss.myfont = myfont
+        BossMusicCore.myfont = myfont
 
         BGM.settings.volume = 100
         SoundEffect.settings.volume = 100
@@ -1938,6 +2361,19 @@ Public Class Form1
 
         If e.KeyCode = Keys.F3 Then
             DebugPanelOn = Not DebugPanelOn
+        End If
+
+        If e.KeyCode = Keys.Escape Then
+            If State = "Game" And Not MainGame.CharacterDied Then
+                MainGame.Pause = Not MainGame.Pause
+                If MainGame.Pause Then
+                    BGM.controls.pause()
+                    BGisOn = True
+                Else
+                    BGM.controls.play()
+                    BGisOn = False
+                End If
+            End If
         End If
     End Sub
 

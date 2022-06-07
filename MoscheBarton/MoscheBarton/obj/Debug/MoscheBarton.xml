@@ -186,6 +186,11 @@ MoscheBarton
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>
 </member>
+<member name="P:MoscheBarton.My.Resources.Game.BossLaser">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
 <member name="P:MoscheBarton.My.Resources.Game.BulletL">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。

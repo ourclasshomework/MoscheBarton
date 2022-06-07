@@ -161,6 +161,11 @@ MoscheBarton
   使用這個強類型資源類別的資源查閱。
 </summary>
 </member>
+<member name="P:MoscheBarton.My.Resources.Game._Continue">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
 <member name="P:MoscheBarton.My.Resources.Game.AbilityL">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
@@ -187,6 +192,11 @@ MoscheBarton
 </summary>
 </member>
 <member name="P:MoscheBarton.My.Resources.Game.BossLaser">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.BossMusicCore">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>
@@ -242,6 +252,11 @@ MoscheBarton
 </summary>
 </member>
 <member name="P:MoscheBarton.My.Resources.Game.Cobblestone">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.ContinueA">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>
@@ -306,6 +321,16 @@ MoscheBarton
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>
 </member>
+<member name="P:MoscheBarton.My.Resources.Game.PauseButton">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.PauseButtonA">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
 <member name="P:MoscheBarton.My.Resources.Game.Planks">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
@@ -322,6 +347,21 @@ MoscheBarton
 </summary>
 </member>
 <member name="P:MoscheBarton.My.Resources.Game.Sunset">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.ToMenu">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.ToMenuA">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
+<member name="P:MoscheBarton.My.Resources.Game.XPBG">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>

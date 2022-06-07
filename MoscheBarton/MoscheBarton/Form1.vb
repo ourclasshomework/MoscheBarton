@@ -1872,6 +1872,8 @@ Public Class Form1
 
                     Case IntroTimeCodeEnd(IntroText.Length() - 1) + 2000 To IntroTimeCodeEnd(IntroText.Length() - 1) + 2000 + 2000
                         State = "ToSelectLevel"
+                        MainGame.level = 0
+                        LevelPreview.Image = My.Resources.SelectLevel._1_1Preview
                         BGM.settings.volume = OriginalBGMvolume
 
                     Case IntroTimeCodeStart(TextIndex) To IntroTimeCodeEnd(TextIndex)
@@ -1898,6 +1900,8 @@ Public Class Form1
                 SkipButton.Box = New RectangleF(MyWidth - 104 * ScaleRatio, 20 * ScaleRatio, 81.695 * ScaleRatio, 21.4067 * ScaleRatio)
                 If SkipButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     State = "ToSelectLevel"
+                    MainGame.level = 0
+                    LevelPreview.Image = My.Resources.SelectLevel._1_1Preview
                 End If
 
                 e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(DimScreen, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
@@ -2112,7 +2116,7 @@ Public Class Form1
                         Abyssosque6.SyncWith(MainGame)
                         Abyssosque6.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
 
-                        If BossMusicCore.MonsterHealth >= 0 Then
+                        If BossMusicCore.MonsterHealth > 0 Then
                             e.Graphics.DrawLine(New Pen(Color.Red, 3 * ScaleRatio),
                                                 New PointF(BossMusicCore.MonsterX * 48 * ScaleRatio + MainGame.CameraX + BossMusicCore.MonsterWidth / 2 * ScaleRatio,
                                                            MainGame.CameraY + (MainGame.height - MainGame.Map_Height * 48 * ScaleRatio) + (MainGame.Map_Height - (BossMusicCore.MonsterY - 0.5)) * 48 * ScaleRatio - BossMusicCore.MonsterHeight * ScaleRatio),
@@ -2249,7 +2253,7 @@ Public Class Form1
 
                 EndGameText.point.X = MyWidth / 2
                 EndGameText.point.Y = MyHeight / 2 - 48 * ScaleRatio
-                EndGameText.Draw("恭喜通關！", e, myfont, ScaleRatio)
+                EndGameText.Draw("恭喜你成功從魔王手中拯救了村莊", e, myfont, ScaleRatio)
 
                 EndGameXpText.point.X = MyWidth / 2
                 EndGameXpText.point.Y = MyHeight / 2 + 5 * ScaleRatio

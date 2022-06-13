@@ -336,6 +336,11 @@ MoscheBarton
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
 </summary>
 </member>
+<member name="P:MoscheBarton.My.Resources.Game.RegenHealth">
+<summary>
+  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+</summary>
+</member>
 <member name="P:MoscheBarton.My.Resources.Game.SlimeL">
 <summary>
   查詢類型 System.Drawing.Bitmap 的當地語系化資源。

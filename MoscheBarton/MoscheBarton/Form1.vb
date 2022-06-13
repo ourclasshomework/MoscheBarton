@@ -4,6 +4,7 @@ Imports System.Runtime.InteropServices
 Imports System.Timers
 
 Public Class Form1
+    '自製TextBox
     Public Class MyTextBox '自定義文字方塊
         Public font As String '選擇要繪製的字體
         Public font_size As Double '字體大小
@@ -81,6 +82,7 @@ Public Class Form1
         End Sub
     End Class
 
+    '自製PictureBox
     Public Class MyPictureBox
         Public Box As RectangleF '圖片的繪製框
         Public Image As Bitmap '圖片
@@ -94,6 +96,7 @@ Public Class Form1
         End Sub
     End Class
 
+    '自製Button
     Public Class MyButton
         Public Box As RectangleF '按鈕框
         Public Image As Bitmap '按鈕圖片
@@ -143,17 +146,20 @@ Public Class Form1
         End Function
     End Class
 
+    '使用WMP播放聲音
     Public Sub PlaySound(ByRef Player As WMPLib.WindowsMediaPlayer, File As String, ShouldLoop As Boolean)
         Player.URL = My.Application.Info.DirectoryPath & "\Music\" & File '選擇路徑
         Player.settings.setMode("loop", ShouldLoop) '設定是否循環
         Player.controls.play() '播放
     End Sub
 
+    '關閉WMP
     Public Sub WMPExit(ByRef Player As WMPLib.WindowsMediaPlayer)
         Player.controls.stop() '停止
         Player.close() '結束
     End Sub
 
+    '自製Slider
     Public Class Slider
         Public X1 As Double '左邊點的X座標
         Public X2 As Double '右邊點的X座標
@@ -199,96 +205,106 @@ Public Class Form1
 
         '繪製控制桿
         Public Sub Draw(ByRef e As PaintEventArgs, myfont As PrivateFontCollection, ScaleRatio As Double, ByRef Player As WMPLib.WindowsMediaPlayer, Mouse As Point, MousePressed As Boolean)
-            e.Graphics.DrawLine(New Pen(color, width), New PointF(X1, Y), New PointF(X2, Y))
+            e.Graphics.DrawLine(New Pen(color, width), New PointF(X1, Y), New PointF(X2, Y)) '畫桿
+            '如果滑鼠在滑桿頭上按下
             If X1 + (X2 - X1) / 100 * value - head_width / 2 <= Mouse.X And Mouse.X <= X1 + (X2 - X1) / 100 * value + head_width / 2 And Y - head_width / 2 <= Mouse.Y And Mouse.Y <= Y + head_width / 2 And MousePressed Then
-                Activated = True
-                HeadX = Mouse.X
-                If HeadX > X2 Then
-                    HeadX = X2
+                Activated = True   '曾按過 = True
+                HeadX = Mouse.X    '滑桿頭X座標 = 滑鼠X座標
+                If HeadX > X2 Then '如果超出上限
+                    HeadX = X2     '設為上限
                 End If
-                If HeadX < X1 Then
-                    HeadX = X1
+                If HeadX < X1 Then '如果超出下限
+                    HeadX = X1     '設為下限
                 End If
-                value = (Mouse.X - X1) / (X2 - X1) * 100
+                value = (Mouse.X - X1) / (X2 - X1) * 100 '計算值 (%)
 
-                If value > 100 Then
-                    value = 100
+                If value > 100 Then '如果值>100
+                    value = 100     '值 = 100
                 End If
-                If value < 0 Then
-                    value = 0
+                If value < 0 Then   '如果值>100
+                    value = 0       '值 = 100
                 End If
 
-                e.Graphics.FillEllipse(New SolidBrush(Activated_color), New RectangleF(HeadX - head_width * 0.8 / 2, Y - head_width * 0.8 / 2, head_width * 0.8, head_width * 0.8))
+                e.Graphics.FillEllipse(New SolidBrush(Activated_color), New RectangleF(HeadX - head_width * 0.8 / 2, Y - head_width * 0.8 / 2, head_width * 0.8, head_width * 0.8)) '畫滑桿頭
+
+                '如果滑鼠按下且曾按過
             ElseIf Activated And MousePressed Then
-                HeadX = Mouse.X
-                If HeadX > X2 Then
-                    HeadX = X2
+                HeadX = Mouse.X    '滑桿頭X座標 = 滑鼠X座標
+                If HeadX > X2 Then '如果超出上限
+                    HeadX = X2     '設為上限
                 End If
-                If HeadX < X1 Then
-                    HeadX = X1
+                If HeadX < X1 Then '如果超出下限
+                    HeadX = X1     '設為下限
                 End If
-                value = (Mouse.X - X1) / (X2 - X1) * 100
+                value = (Mouse.X - X1) / (X2 - X1) * 100 '計算值 (%)
 
-                If value > 100 Then
-                    value = 100
+                If value > 100 Then '如果值>100
+                    value = 100     '值 = 100
                 End If
-                If value < 0 Then
-                    value = 0
+                If value < 0 Then   '如果值>100
+                    value = 0       '值 = 100
                 End If
-                e.Graphics.FillEllipse(New SolidBrush(Activated_color), New RectangleF(HeadX - head_width * 0.8 / 2, Y - head_width * 0.8 / 2, head_width * 0.8, head_width * 0.8))
+                e.Graphics.FillEllipse(New SolidBrush(Activated_color), New RectangleF(HeadX - head_width * 0.8 / 2, Y - head_width * 0.8 / 2, head_width * 0.8, head_width * 0.8)) '畫滑桿頭
+
+                '如果在滑桿上按下
             ElseIf X1 <= Mouse.X And Mouse.X <= X2 And Y - head_width / 2 <= Mouse.Y And Mouse.Y <= Y + head_width / 2 And MousePressed Then
-                HeadX = Mouse.X
-                If HeadX > X2 Then
-                    HeadX = X2
+                HeadX = Mouse.X    '滑桿頭X座標 = 滑鼠X座標
+                If HeadX > X2 Then '如果超出上限
+                    HeadX = X2     '設為上限
                 End If
-                If HeadX < X1 Then
-                    HeadX = X1
+                If HeadX < X1 Then '如果超出下限
+                    HeadX = X1     '設為下限
                 End If
-                value = (Mouse.X - X1) / (X2 - X1) * 100
+                value = (Mouse.X - X1) / (X2 - X1) * 100 '計算值 (%)
 
-                If value > 100 Then
-                    value = 100
+                If value > 100 Then '如果值>100
+                    value = 100     '值 = 100
                 End If
-                If value < 0 Then
-                    value = 0
+                If value < 0 Then   '如果值>100
+                    value = 0       '值 = 100
                 End If
-                e.Graphics.FillEllipse(New SolidBrush(Activated_color), New RectangleF(HeadX - head_width * 0.8 / 2, Y - head_width * 0.8 / 2, head_width * 0.8, head_width * 0.8))
+                e.Graphics.FillEllipse(New SolidBrush(Activated_color), New RectangleF(HeadX - head_width * 0.8 / 2, Y - head_width * 0.8 / 2, head_width * 0.8, head_width * 0.8)) '畫滑桿頭
+
+                '如果曾按過，但滑鼠放開
             ElseIf Activated And MousePressed = False Then
-                Player.settings.volume = value
-                Player.settings.setMode("loop", False)
-                Player.URL = My.Application.Info.DirectoryPath & "\Music\Click.wav"
+                Player.settings.volume = value '將音量值設定到 WMP
+                Player.settings.setMode("loop", False) '設定是否循環撥放
+                Player.URL = My.Application.Info.DirectoryPath & "\Music\Click.wav" '撥放音效
 
-                e.Graphics.FillEllipse(New SolidBrush(color), New RectangleF(X1 + (X2 - X1) / 100 * value - head_width / 2, Y - head_width / 2, head_width, head_width))
-                Activated = False
+                e.Graphics.FillEllipse(New SolidBrush(color), New RectangleF(X1 + (X2 - X1) / 100 * value - head_width / 2, Y - head_width / 2, head_width, head_width)) '畫滑桿頭
+                Activated = False '曾按過 = False
             Else
-                e.Graphics.FillEllipse(New SolidBrush(color), New RectangleF(X1 + (X2 - X1) / 100 * value - head_width / 2, Y - head_width / 2, head_width, head_width))
-                Activated = False
+                e.Graphics.FillEllipse(New SolidBrush(color), New RectangleF(X1 + (X2 - X1) / 100 * value - head_width / 2, Y - head_width / 2, head_width, head_width)) '畫滑桿頭
+                Activated = False '曾按過 = False
             End If
 
-            Name.Draw(NameText, e, myfont, ScaleRatio)
-            ValueText.Draw(CStr(value), e, myfont, ScaleRatio)
+            Name.Draw(NameText, e, myfont, ScaleRatio) '畫名字
+            ValueText.Draw(CStr(value), e, myfont, ScaleRatio) '畫值
         End Sub
     End Class
 
+    '取亂數
     Public Function RandomInt(min As Double, max As Double) As Integer
         Randomize()
         Return Int(min + Rnd() * (max - min + 1))
     End Function
 
+    '遊戲地圖生成、角色移動、鏡頭移動----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Public Class Game
         '遊戲畫面基本設定--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        Public x As Double
-        Public y As Double
-        Public width As Double
-        Public height As Double
-        Public BG As Bitmap
-        Public level As Double = 0
+        Public x As Double '左上角X座標 (px)
+        Public y As Double '左上角Y座標 (px)
+        Public width As Double  '寬 (px)
+        Public height As Double '高 (px)
+        Public BG As Bitmap '天空圖片
+        Public level As Double = 0 '第幾關
         Private Const G As Double = 9.80665 / 1000 '重力加速度常數 (格/ms^2)
-        Public CameraX As Double = 0
-        Public CameraY As Double = 0
-        Private CameraSpeed As Double = 4.5 'pixel/每次更新
 
-        Public Pause As Boolean = False
+        Public CameraX As Double = 0        '鏡頭X偏移 (px)
+        Public CameraY As Double = 0        '鏡頭Y偏移 (px)
+        Private CameraSpeed As Double = 4.5 '鏡頭移動速度 (pixel/每次更新)
+
+        Public Pause As Boolean = False '是否暫停遊戲
 
         '遊戲音效的撥放器--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Public Attack As New WMPLib.WindowsMediaPlayer
@@ -307,82 +323,85 @@ Public Class Form1
         Private CharacterBottom As Boolean
 
         '地圖--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        Public Map As Integer(,)
-        Public Map_Width As Integer
-        Public Map_Height As Integer
-        Private Map_Texture As Bitmap() = {My.Resources.Game.Cobblestone, My.Resources.Game.Cobblestone, My.Resources.Game.Planks, My.Resources.Game.Log, My.Resources.Game.Fence, My.Resources.Game.NextLevel}
-        Private MapDx As Double = 0
-        Private MapDy As Double = 0
+        Public Map As Integer(,) '地圖
+        Public Map_Width As Integer '寬 (格)
+        Public Map_Height As Integer '高 (格)
+        Private Map_Texture As Bitmap() = {My.Resources.Game.Cobblestone, My.Resources.Game.Cobblestone, My.Resources.Game.Planks, My.Resources.Game.Log, My.Resources.Game.Fence, My.Resources.Game.NextLevel} '材質
+        Private MapDx As Double = 0 '地圖X偏移 (生成用)(格)
+        Private MapDy As Double = 0 '地圖Y偏移 (生成用)(格)
 
         '受傷數值文字--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        Public myfont As PrivateFontCollection
-        Private DamageText As New MyTextBox With {.font = "Cubic11", .font_size = 24, .color = Color.FromArgb(244, 67, 54), .Align = "Center", .LineAlign = "Center"}
-        Public Damage As Double
-        Public ShowDamage As Boolean = False
-        Public LastShowDamage As Long = 0
+        Public myfont As PrivateFontCollection '字體集
+        Private DamageText As New MyTextBox With {.font = "Cubic11", .font_size = 24, .Align = "Center", .LineAlign = "Center"} '傷害值的顯示
+        Public Damage As Double '傷害
+        Public ShowDamage As Boolean = False '顯示傷害
+        Public LastShowDamage As Long = 0 '初次顯示傷害的時間 (計時用)
 
         '角色--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        Private CharacterImg As Bitmap = My.Resources.Game.CRNN
-        Private CharacterMoveAni As Integer = 0
-        Private CharacterMoveAniTimer As Long
-        Private CharacterDirection As Boolean = False 'False = 右，True = 左
+        Private CharacterImg As Bitmap = My.Resources.Game.CRNN '角色圖片
+        Private CharacterMoveAni As Integer = 0 '角色動畫
+        Private CharacterMoveAniTimer As Long '角色動畫的計時器
+        Private CharacterDirection As Boolean = True 'False = 右，True = 左
 
         Private Character_Speed As Double = 0.09 '(格/每次更新)
-        Private CharacterYv As Double = 0
+        Private CharacterYv As Double = 0 '角色Y軸速度
 
-        Public Const CharacterMaxHealth As Double = 100
-        Public CharacterHealth As Double = CharacterMaxHealth
+        Public Const CharacterMaxHealth As Double = 100 '角色預設血量
+        Public CharacterHealth As Double = CharacterMaxHealth '角色血量
 
-        Public CharacterBox As RectangleF
-        Public CharacterX As Double
-        Public CharacterY As Double
-        Private CharacterWidth As Double = 27
-        Private CharacterHeight As Double = 84
-        Private CharacterHitBoxWidth As Double = 27 / 48
-        Private CharacterHitBoxHeight As Double = 84 / 48
-        Private CharacterAttackWidth As Double = 0
+        Public CharacterBox As RectangleF '角色外框
+        Public CharacterX As Double '角色X座標 (格)
+        Public CharacterY As Double '角色Y座標 (格)
+        Private CharacterWidth As Double = 27 '角色寬度 (px)
+        Private CharacterHeight As Double = 84 '角色高度 (px)
+        Private CharacterHitBoxWidth As Double = 27 / 48 '角色碰撞箱寬度 (px)
+        Private CharacterHitBoxHeight As Double = 84 / 48 '角色碰撞相高度 (px)
+        Private CharacterAttackWidth As Double = 0 '角色左右邊攻擊的繪製偏移X值
 
-        Public CharacterHarmDamage As Double = 5
+        Public CharacterHarmDamage As Double = 5 '角色普通攻擊傷害
 
-        Public CharacterDied As Boolean = True
+        Public CharacterDied As Boolean = False '角色是否死亡
 
-        Private Character_Jump As Boolean = False
-        Private Character_CanJump As Boolean = True
-        Private Const Character_Jump_Speed As Double = 0.105 '(格/每次更新)
-        Private Jump_Delay As Integer = 350 '(ms)
-        Private Last_Jump As Long = 0
+        Private Character_Jump As Boolean = False '角色是否跳躍
+        Private Character_CanJump As Boolean = True '角色是否可以跳躍
+        Private Const Character_Jump_Speed As Double = 0.105 '角色跳躍初速 (格/每次更新)
+        Private Jump_Delay As Integer = 350 '跳躍與跳躍之間的延遲 (ms)
+        Private Last_Jump As Long = 0 '上一次跳躍的時間
 
         '子彈--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        Private BulletImg As Bitmap = My.Resources.Game.BulletR
+        Private BulletImg As Bitmap = My.Resources.Game.BulletR '子彈圖
         Public BulletDirection As Boolean = False 'False = 右，True = 左
 
-        Public BulletBox As RectangleF
-        Public BulletX As Double
-        Public BulletY As Double
-        Public BulletWidth As Double = 12
-        Public BulletHeight As Double = 24
+        Public BulletBox As RectangleF '子彈外框
+        Public BulletX As Double '子彈X座標 (格)
+        Public BulletY As Double '子彈Y座標 (格)
+        Public BulletWidth As Double = 12 '子彈寬度 (px)
+        Public BulletHeight As Double = 24 '子彈高度 (px)
 
         Public CharacterShootX As Double
         Public CharacterShootY As Double
 
+        '子彈偵測
         Private BulletDetectX As Integer
         Private BulletDetectY As Integer
         Private Const BulletSpeed As Double = 0.3 '格/每次更新
 
-        Public CanShoot As Boolean = True
-        Private LastShoot As Long = 0
+        Public CanShoot As Boolean = True '可以射子彈
+        Private LastShoot As Long = 0 '上次射子彈時間
         Private ShootGap As Long = 400 'ms
-        Private HadShot As Boolean = False
+        Private HadShot As Boolean = False '是否射過
 
         '攻擊CD條--------------------------------------------------------------------------------------------------------------------------------------------
-        Private CDBarFull As Double = 400
-        Private CDShowValue As Double = 400
+        Private CDBarFull As Double = 400 'CD條滿
+        Private CDShowValue As Double = 400 'CD條顯示
 
+        '取隨機數
         Public Function RandomInt(min As Double, max As Double) As Integer
             Randomize()
             Return Int(min + Rnd() * (max - min + 1))
         End Function
 
+        '角色重置
         Public Sub CharacterReset(x As Double, y As Double)
             CharacterX = x
             CharacterY = y
@@ -390,10 +409,12 @@ Public Class Form1
             Pause = False
         End Sub
 
+        '角色血量重置
         Public Sub CharacterHealthReset()
             CharacterHealth = CharacterMaxHealth
         End Sub
 
+        '地圖設定
         Public Sub MapSetting(w As Integer, h As Integer)
             Map_Width = w
             Map_Height = h
@@ -406,11 +427,13 @@ Public Class Form1
             End Select
         End Sub
 
+        '鏡頭重置
         Public Sub CameraReset(Optional dx As Double = 0, Optional dy As Double = 0)
             CameraX = dx
             CameraY = dy
         End Sub
 
+        '遊戲外框設定
         Public Sub BoxSetting(ptx As Double, pty As Double, ptwidth As Double, ptheight As Double)
             x = ptx
             y = pty
@@ -418,13 +441,16 @@ Public Class Form1
             height = ptheight
         End Sub
 
+        '角色偵測牆
         Private Sub Detect()
+            '偵測牆
             WallDetectX0 = Math.Floor(CharacterX)
             WallDetectX08 = Math.Floor(CharacterX + CharacterHitBoxWidth - 0.000001)
             WallDetectY0 = Math.Floor(Map_Height - (CharacterY + 0.000001))
             WallDetectY09 = Math.Floor(Map_Height - (CharacterY + CharacterHitBoxHeight / 2))
             WallDetectY18 = Math.Floor(Map_Height - (CharacterY + CharacterHitBoxHeight - 0.000001))
 
+            '過大的值固定到最大，過小的值固定到0
             If WallDetectX0 < 0 Then
                 WallDetectX0 = 0
             ElseIf WallDetectX0 > Map_Width - 1 Then
@@ -455,22 +481,27 @@ Public Class Form1
                 WallDetectY18 = Map_Height - 1
             End If
 
+            '角色上下左右的牆偵測
             CharacterLeft = (Map(WallDetectY0, WallDetectX0) > 0 Or Map(WallDetectY09, WallDetectX0) > 0 Or Map(WallDetectY18, WallDetectX0) > 0) And Math.Floor(CharacterX) < CharacterX And CharacterX < Math.Floor(CharacterX) + 1
             CharacterRight = (Map(WallDetectY0, WallDetectX08) > 0 Or Map(WallDetectY09, WallDetectX08) > 0 Or Map(WallDetectY18, WallDetectX08) > 0) And Math.Floor(CharacterX + CharacterHitBoxWidth) < CharacterX + CharacterHitBoxWidth And CharacterX + CharacterHitBoxWidth < Math.Floor(CharacterX + CharacterHitBoxWidth) + 1
             CharacterTop = (Map(WallDetectY18, WallDetectX0) > 0 Or Map(WallDetectY18, WallDetectX08) > 0) And Math.Floor(CharacterY + CharacterHitBoxHeight) < CharacterY + CharacterHitBoxHeight And CharacterY + CharacterHitBoxHeight < Math.Floor(CharacterY + CharacterHitBoxHeight) + 1
             CharacterBottom = (Map(WallDetectY0, WallDetectX0) > 0 Or Map(WallDetectY0, WallDetectX08) > 0) And Math.Floor(CharacterY) < CharacterY And CharacterY < Math.Floor(CharacterY) + 1
         End Sub
 
+        '角色換圖片，發射子彈
         Private Sub CharacterImgChange(ByRef e As PaintEventArgs, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean, ByRef ScaleRatio As Double)
+            '如果沒有暫停
             If Not Pause Then
-                If MousePressed Or Keyboard(Keys.E) Then
-                    If Keyboard(Keys.A) Then
+                If MousePressed Or Keyboard(Keys.E) Then '按滑鼠或E
+                    If Keyboard(Keys.A) Then '按A
+                        '設定角色
                         CharacterWidth = 67.0383
                         CharacterHeight = 84.5916
                         CharacterAttackWidth = 27
                         CharacterHitBoxWidth = 27 / 48
                         CharacterHitBoxHeight = 84.5916 / 48
 
+                        '角色移動動畫
                         Select Case CharacterMoveAni
                             Case 0
                                 CharacterImg = My.Resources.Game.CLAW0
@@ -480,18 +511,21 @@ Public Class Form1
                                 CharacterImg = My.Resources.Game.CLAW2
                         End Select
 
+                        '如果可以射子彈
                         If CanShoot Then
-                            BulletDirection = True
+                            BulletDirection = True '子彈方向左
                         End If
                     End If
 
-                    If Keyboard(Keys.D) Then
+                    If Keyboard(Keys.D) Then '按D
+                        '設定角色
                         CharacterWidth = 67.0383
                         CharacterHeight = 84.5916
                         CharacterAttackWidth = 0
                         CharacterHitBoxWidth = 40.0383 / 48
                         CharacterHitBoxHeight = 84.5916 / 48
 
+                        '角色移動動畫
                         Select Case CharacterMoveAni
                             Case 0
                                 CharacterImg = My.Resources.Game.CRAW0
@@ -501,25 +535,28 @@ Public Class Form1
                                 CharacterImg = My.Resources.Game.CRAW2
                         End Select
 
+                        '如果可以射子彈
                         If CanShoot Then
-                            BulletDirection = False
+                            BulletDirection = False '子彈方向右
                         End If
                     End If
 
 
-                    If Not Keyboard(Keys.A) And Not Keyboard(Keys.D) Then
+                    If Not Keyboard(Keys.A) And Not Keyboard(Keys.D) Then '不按A和D
+                        '設定角色
                         CharacterWidth = 58.0383
                         CharacterHeight = 84
                         CharacterHitBoxWidth = 27 / 48
                         CharacterHitBoxHeight = 84 / 48
 
-                        If CharacterDirection Then
+                        '偵測角色方向
+                        If CharacterDirection Then '左
                             CharacterAttackWidth = -12.1249
                             CharacterImg = My.Resources.Game.CRAN
                             If CanShoot Then
                                 BulletDirection = False
                             End If
-                        Else
+                        Else '右
                             CharacterAttackWidth = 31.0383 - 12.1249
                             CharacterImg = My.Resources.Game.CLAN
                             If CanShoot Then
@@ -528,6 +565,7 @@ Public Class Form1
                         End If
                     End If
 
+                    '如果可以射
                     If CanShoot And Now.Ticks() / 10000 - LastShoot > ShootGap And Not HadShot Then
                         LastShoot = Now.Ticks() / 10000
                         If BulletDirection Then
@@ -542,6 +580,7 @@ Public Class Form1
                         CharacterShootX = CharacterX
                         CharacterShootY = CharacterY
 
+                        '如果按E
                         If Keyboard(Keys.E) Then
                             Attack.URL = My.Application.Info.DirectoryPath & "\Music\技能.mp3" '選擇路徑
                             Attack.settings.setMode("loop", False) '設定是否循環
@@ -561,6 +600,7 @@ Public Class Form1
                             ShootGap = 1500
                             CDBarFull = 1500
 
+                            '如果按滑鼠
                         ElseIf MousePressed Then
                             Attack.URL = My.Application.Info.DirectoryPath & "\Music\射出.mp3" '選擇路徑
                             Attack.settings.setMode("loop", False) '設定是否循環
@@ -581,15 +621,17 @@ Public Class Form1
 
                         End If
                     End If
-                Else
+                Else '沒按滑鼠或E
                     HadShot = False
-                    If Keyboard(Keys.A) Then
+                    If Keyboard(Keys.A) Then '按A
+                        '設定角色
                         CharacterWidth = 39.1249
                         CharacterHeight = 84.5916
                         CharacterAttackWidth = 0
                         CharacterHitBoxWidth = 39.1249 / 48
                         CharacterHitBoxHeight = 84.5916 / 48
 
+                        '角色動畫
                         Select Case CharacterMoveAni
                             Case 0
                                 CharacterImg = My.Resources.Game.CLNW0
@@ -600,13 +642,15 @@ Public Class Form1
                         End Select
                     End If
 
-                    If Keyboard(Keys.D) Then
+                    If Keyboard(Keys.D) Then '按D
+                        '設定角色
                         CharacterWidth = 39.1249
                         CharacterHeight = 84.5916
                         CharacterAttackWidth = 0
                         CharacterHitBoxWidth = 39.1249 / 48
                         CharacterHitBoxHeight = 84.5916 / 48
 
+                        '角色動畫
                         Select Case CharacterMoveAni
                             Case 0
                                 CharacterImg = My.Resources.Game.CRNW0
@@ -617,28 +661,30 @@ Public Class Form1
                         End Select
                     End If
 
-                    If Not Keyboard(Keys.A) And Not Keyboard(Keys.D) Then
+                    If Not Keyboard(Keys.A) And Not Keyboard(Keys.D) Then '沒按A和D
+                        '設定角色
                         CharacterWidth = 27
                         CharacterHeight = 84
                         CharacterAttackWidth = -12.1249
                         CharacterHitBoxWidth = 27 / 48
                         CharacterHitBoxHeight = 84.5916 / 48
 
-                        If CharacterDirection Then
+                        If CharacterDirection Then '角色向左
                             CharacterImg = My.Resources.Game.CRNN
-                        Else
+                        Else '角色向右
                             CharacterImg = My.Resources.Game.CLNN
                         End If
                     End If
                 End If
 
-                If CanShoot = False Then
-                    If BulletDirection Then
-                        BulletX -= BulletSpeed
-                    Else
-                        BulletX += BulletSpeed
+                If CanShoot = False Then '如果不能射
+                    If BulletDirection Then '方向向左
+                        BulletX -= BulletSpeed '子彈向左
+                    Else '方向向右
+                        BulletX += BulletSpeed '子彈向右
                     End If
 
+                    '子彈偵測撞牆
                     BulletDetectY = Math.Floor(Map_Height - BulletY - 1)
                     BulletDetectX = Math.Floor(BulletX + 0.25)
                     If BulletDetectY >= Map_Height Then
@@ -656,18 +702,20 @@ Public Class Form1
                 End If
             End If
 
-            If CanShoot = False Then
+            If CanShoot = False Then '如果不能射
+                '更新子彈外框
                 BulletBox = New RectangleF(x + CameraX + BulletX * 48 * ScaleRatio + 5 * ScaleRatio,
                                            y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - BulletY) * 48 * ScaleRatio - 24 * ScaleRatio - 10 * ScaleRatio,
                                            BulletWidth * ScaleRatio, BulletHeight * ScaleRatio)
-                e.Graphics.DrawImage(BulletImg, BulletBox)
+                e.Graphics.DrawImage(BulletImg, BulletBox) '畫子彈
 
-                If Map(BulletDetectY, BulletDetectX) > 0 Then
-                    CanShoot = True
+                If Map(BulletDetectY, BulletDetectX) > 0 Then '如果子彈在的方塊不是空氣
+                    CanShoot = True '可以射
                 End If
             End If
         End Sub
 
+        '畫遊戲介面----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Public Sub DrawGame(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef Keyboard() As Boolean, ByRef Mouse As Point, ByRef MousePressed As Boolean, volume As Integer)
             Attack.settings.volume = volume
 
@@ -676,16 +724,16 @@ Public Class Form1
 
             If Not Pause Then
                 '偵測角色偏移以偏移鏡頭--------------------------------------------------------------------------------------------------------------------------------------------
-                If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX > x + width / 2 And x + width < x + Map_Width * 48 * ScaleRatio + CameraX Then
+                If x + CharacterX * 48 * ScaleRatio + 27 * ScaleRatio + CameraX > x + width / 2 And x + width < x + Map_Width * 48 * ScaleRatio + CameraX Then
                     CameraX -= CameraSpeed * ScaleRatio
                 End If
-                If x + CharacterX * 48 * ScaleRatio + CharacterBox.Width / 2 + CameraX < x + width / 2 And x > x + CameraX Then
+                If x + CharacterX * 48 * ScaleRatio + 27 * ScaleRatio + CameraX < x + width / 2 And x > x + CameraX Then
                     CameraX += CameraSpeed * ScaleRatio
                 End If
-                If y + height - CharacterY * 48 * ScaleRatio - CharacterBox.Height / 2 + CameraY < y + height / 2 And y > y + height - Map_Height * 48 * ScaleRatio + CameraY Then
+                If y + height - CharacterY * 48 * ScaleRatio - 42 * ScaleRatio + CameraY < y + height / 2 And y > y + height - Map_Height * 48 * ScaleRatio + CameraY Then
                     CameraY += CameraSpeed * ScaleRatio
                 End If
-                If y + height - CharacterY * 48 * ScaleRatio - CharacterBox.Height / 2 + CameraY > y + height / 2 And y + height < y + height + CameraY Then
+                If y + height - CharacterY * 48 * ScaleRatio - 42 * ScaleRatio + CameraY > y + height / 2 And y + height < y + height + CameraY Then
                     CameraY -= CameraSpeed * ScaleRatio
                 End If
             End If
@@ -708,59 +756,59 @@ Public Class Form1
                 MapDy += 48 * ScaleRatio
             Next
 
-            If Not Pause Then
-                '角色部分----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                If Not CharacterDied Then
+            '角色部分----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            If Not Pause Then '如果未暫停
+                If Not CharacterDied Then '如果角色未死
                     '角色向右
-                    If Keyboard(Keys.D) Then
-                        CharacterDirection = True
-                        CharacterX += Character_Speed
-                        Detect()
-                        If CharacterRight Then
-                            CharacterX = Math.Floor(CharacterX) + (1 - CharacterHitBoxWidth - 0.000001)
+                    If Keyboard(Keys.D) Then '按D
+                        CharacterDirection = True '角色向左
+                        CharacterX += Character_Speed '移動
+                        Detect() '偵測邊界
+                        If CharacterRight Then '如果角色右邊有牆
+                            CharacterX = Math.Floor(CharacterX) + (1 - CharacterHitBoxWidth - 0.000001) '卡住角色
                         End If
                     End If
                     '角色向左
-                    If Keyboard(Keys.A) Then
-                        CharacterDirection = False
-                        CharacterX -= Character_Speed
-                        Detect()
-                        If CharacterLeft Then
-                            CharacterX = Math.Floor(CharacterX) + 1
+                    If Keyboard(Keys.A) Then '按A
+                        CharacterDirection = False '角色向右
+                        CharacterX -= Character_Speed '移動
+                        Detect() '偵測邊界
+                        If CharacterLeft Then '如果角色左邊有牆
+                            CharacterX = Math.Floor(CharacterX) + 1 '卡住牆壁
                         End If
                     End If
                     '角色跳
-                    If Keyboard(Keys.Space) And Character_Jump = False And Character_CanJump And Now.Ticks() / 10000 - Last_Jump > Jump_Delay Then
-                        CharacterYv = Character_Jump_Speed
-                        Character_Jump = True
-                        Character_CanJump = False
-                        Last_Jump = Now.Ticks() / 10000
+                    If Keyboard(Keys.Space) And Character_Jump = False And Character_CanJump And Now.Ticks() / 10000 - Last_Jump > Jump_Delay Then '如果可以跳躍，且按下空白鍵
+                        CharacterYv = Character_Jump_Speed '向上加速
+                        Character_Jump = True '角色正在跳 = True
+                        Character_CanJump = False '角色可以跳 = False
+                        Last_Jump = Now.Ticks() / 10000 '上次跳躍時間 = 現在
                     End If
-                    If Not Keyboard(Keys.Space) Then
-                        Character_CanJump = True
+                    If Not Keyboard(Keys.Space) Then '如果沒按空白鍵
+                        Character_CanJump = True '角色可以跳 = True
                     End If
                 End If
 
                 '角色重力--------------------------------------------------------------------------------------------------------------------------------------------
-                CharacterYv -= G
-                CharacterY += CharacterYv * 5
-                Detect()
-                If CharacterTop And Character_Jump Then
-                    CharacterY = Math.Floor(CharacterY + CharacterHitBoxHeight) - CharacterHitBoxHeight
+                CharacterYv -= G '向下速度
+                CharacterY += CharacterYv * 5 '根據角色Y軸速度移動角色
+                Detect() '偵測邊界
+                If CharacterTop And Character_Jump Then '如果上面有牆，且正在跳
+                    CharacterY = Math.Floor(CharacterY + CharacterHitBoxHeight) - CharacterHitBoxHeight '卡住角色
                 End If
-                Detect()
-                If CharacterBottom Then
-                    CharacterY = Math.Floor(CharacterY) + 1
-                    CharacterYv = 0
-                    Character_Jump = False
+                Detect() '偵測邊界
+                If CharacterBottom Then '如果下面有強
+                    CharacterY = Math.Floor(CharacterY) + 1 '卡住角色
+                    CharacterYv = 0 '跳躍速度 = 0
+                    Character_Jump = False '正在跳 = False
                 End If
 
                 '角色走路動畫--------------------------------------------------------------------------------------------------------------------------------------------
-                If Now.Ticks() / 10000 - CharacterMoveAniTimer > 100 Then
-                    CharacterMoveAniTimer = Now.Ticks() / 10000
-                    CharacterMoveAni += 1
-                    If CharacterMoveAni > 2 Then
-                        CharacterMoveAni = 0
+                If Now.Ticks() / 10000 - CharacterMoveAniTimer > 100 Then '如果要換下一張圖片的時間到
+                    CharacterMoveAniTimer = Now.Ticks() / 10000 '更新上次換圖片的時間
+                    CharacterMoveAni += 1 '下一張圖片
+                    If CharacterMoveAni > 2 Then '如果圖片超出2
+                        CharacterMoveAni = 0 '換成0
                     End If
                 End If
             End If
@@ -778,6 +826,10 @@ Public Class Form1
             e.Graphics.DrawImage(CharacterImg, CharacterBox)
 
             '畫角色血量--------------------------------------------------------------------------------------------------------------------------------------------
+            If CharacterHealth > CharacterMaxHealth Then '偵測血量是否過多
+                CharacterHealth = CharacterMaxHealth
+            End If
+
             e.Graphics.FillRectangle(Brushes.White, New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio + 5 * ScaleRatio,
                                                                    y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio - 15 * ScaleRatio,
                                                                    37 * ScaleRatio,
@@ -787,59 +839,69 @@ Public Class Form1
                                                                    37 * ScaleRatio * CharacterHealth / CharacterMaxHealth,
                                                                    5 * ScaleRatio))
 
-            If ShowDamage Then
-                If Now.Ticks() / 10000 - LastShowDamage > ShowDamageTime Then
-                    ShowDamage = False
+            If ShowDamage Then '如果要顯示傷害(回血)
+                If Now.Ticks() / 10000 - LastShowDamage > ShowDamageTime Then '如果顯示傷害(回血)的時間到
+                    ShowDamage = False '停止顯示傷害(回血)
                 Else
+                    '畫傷害(回血)文字
                     DamageText.point.X = x + CameraX + CharacterX * 48 * ScaleRatio - CharacterAttackWidth * ScaleRatio
                     DamageText.point.Y = y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio
-                    DamageText.Draw(CStr(Damage), e, myfont, ScaleRatio)
+                    If Damage < 0 Then '如果是回血
+                        DamageText.color = Color.FromArgb(21, 244, 73) '換成綠色
+                        DamageText.Draw("+" & CStr(-Damage), e, myfont, ScaleRatio) '畫回血量
+                    Else
+                        DamageText.color = Color.FromArgb(244, 67, 54) '換成紅色
+                        DamageText.Draw("-" & CStr(Damage), e, myfont, ScaleRatio) '畫扣血量
+                    End If
                 End If
             End If
 
             '畫CD條--------------------------------------------------------------------------------------------------------------------------------------------
-            If ShootGap / 1000 - (Now.Ticks() / 10000 - LastShoot) / 1000 <= 0 Then
-                CDShowValue = 0
+            If ShootGap / 1000 - (Now.Ticks() / 10000 - LastShoot) / 1000 <= 0 Then '如果CD條時間<0
+                CDShowValue = 0 '時間設定為0
             Else
                 CDShowValue = ShootGap / 1000 - (Now.Ticks() / 10000 - LastShoot) / 1000
             End If
+            '畫CD條本身
             e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(200, 255, 255, 255)), New RectangleF(x + CameraX + CharacterX * 48 * ScaleRatio + 5 * ScaleRatio,
                                                                                                         y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - CharacterY) * 48 * ScaleRatio - CharacterHeight * ScaleRatio - 7.5 * ScaleRatio,
                                                                                                         37 * ScaleRatio * (CDShowValue / (CDBarFull / 1000)),
                                                                                                         5 * ScaleRatio))
 
+            '偵測角色是否死亡----------------------------------------------------------------------------------------------------------------------------------
             If CharacterHealth <= 0 And Not Pause Then
                 CharacterDied = True
             End If
         End Sub
     End Class
 
+    '怪物生成
     Public Class Monster
         '遊戲畫面基本設定--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        Public x As Double
-        Public y As Double
-        Public width As Double
-        Public height As Double
+        Public x As Double '遊戲畫面左上角X座標
+        Public y As Double '遊戲畫面左上角Y座標
+        Public width As Double '遊戲顯示畫面寬度
+        Public height As Double '遊戲顯示畫面高度
         Private Const G As Double = 9.80665 / 1000 '重力加速度常數 (格/ms^2)
-        Private CameraX As Double = 0
-        Private CameraY As Double = 0
+        Private CameraX As Double = 0 '鏡頭偏移X
+        Private CameraY As Double = 0 '鏡頭偏移Y
 
         Public Pause As Boolean = False
 
         '遊戲音效的撥放器--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        Public Hit As New WMPLib.WindowsMediaPlayer
-        Public CharacterBeenHit As New WMPLib.WindowsMediaPlayer
+        Private Hit As New WMPLib.WindowsMediaPlayer
+        Private CharacterBeenHit As New WMPLib.WindowsMediaPlayer
 
         '角色--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        Public CharacterX As Double
-        Public CharacterY As Double
-        Public CharacterShootX As Double
-        Public CharacterShootY As Double
+        Private CharacterX As Double '角色X座標 (格)
+        Private CharacterY As Double '角色Y座標 (格)
+        Private CharacterShootX As Double
+        Private CharacterShootY As Double
 
         '地圖--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        Public Map As Integer(,)
-        Public Map_Width As Integer
-        Public Map_Height As Integer
+        Private Map As Integer(,) '地圖
+        Private Map_Width As Integer '地圖寬度 (格)
+        Private Map_Height As Integer '地圖高度 (格)
 
         '所有角色的偵測--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Private WallDetectX0 As Integer
@@ -850,54 +912,55 @@ Public Class Form1
 
         '子彈--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Private BulletDirection As Boolean = False 'False = 右，True = 左
-        Public BulletX As Double
-        Public BulletY As Double
+        Private BulletX As Double '子彈X座標
+        Private BulletY As Double '子彈Y座標
 
         '受傷數值文字--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        Public myfont As PrivateFontCollection
-        Private Damage As Double
-        Private DamageText As New MyTextBox With {.font = "Cubic11", .font_size = 24, .color = Color.FromArgb(244, 67, 54), .Align = "Center", .LineAlign = "Center"}
-        Private ShowDamage As Boolean = False
-        Private LastShowDamage As Long = 0
+        Public myfont As PrivateFontCollection '自訂字體
+        Private Damage As Double '傷害值
+        Private DamageText As New MyTextBox With {.font = "Cubic11", .font_size = 24, .color = Color.FromArgb(244, 67, 54), .Align = "Center", .LineAlign = "Center"} '顯示傷害的文字
+        Private ShowDamage As Boolean = False '是否顯示傷害
+        Private DamageTextBulletX As Double '暫時紀錄怪物被子彈擊中的X座標
+        Private LastShowDamage As Long = 0 '上次顯示傷害的時間
 
         '怪物---------------------------------------------------------------------------------------------------------------------------------------------------
-        Public MonsterImg As Bitmap = My.Resources.Game.SlimeL
-        Public LeftId As Integer = 0
-        Public RightId As Integer = 1
-        Public MonsterDirection As Boolean = False 'False = 右，True = 左
-        Public Monster_Speed As Double = 0.03 '(格/每次更新)
-        Public MonsterBox As RectangleF
-        Public MonsterX As Double
-        Public MonsterY As Double
-        Public MonsterYv As Double = 0
-        Public MonsterWidth As Double = 63
-        Public MonsterHeight As Double = 84
-        Public MonsterHealth As Double = 100
-        Public MonsterMaxHealth As Double = 100
-        Public MonsterDetectArea As Double = 3.5 '格
-        Public MonsterHasNotDied As Boolean = True
+        Private MonsterImg As Bitmap = My.Resources.Game.SlimeL '怪物圖片
+        Private LeftId As Integer = 0 '怪物向左的圖片編號
+        Private RightId As Integer = 1 '怪物向右的圖片編號
+        Private MonsterDirection As Boolean = False 'False = 右，True = 左
+        Private Monster_Speed As Double = 0.03 ' 怪物速度(格/每次更新)
+        Private MonsterBox As RectangleF '怪物外框
+        Public MonsterX As Double '怪物X座標 (格)
+        Public MonsterY As Double '怪物Y座標 (格)
+        Private MonsterYv As Double = 0 '怪物Y軸速度
+        Public MonsterWidth As Double = 63 '怪物寬度
+        Public MonsterHeight As Double = 84 '怪物高度
+        Public MonsterHealth As Double = 100 '怪物血量
+        Public MonsterHarm As Double = 0 '怪物造成的傷害
+        Private MonsterMaxHealth As Double = 100 '怪物滿血血量
+        Private MonsterDetectArea As Double = 3.5 '怪物偵測範圍 (格) 
+        Private MonsterHasNotDied As Boolean = True '怪物還沒死 (放音效用)
 
-        Public MonsterLaserDxLeft As Double = 0
-        Public MonsterLaserDxRight As Double = 0
+        Private MonsterLaserDxLeft As Double = 0 'BOSS雷射向左位移量
+        Private MonsterLaserDxRight As Double = 0 'BOSS雷射向右位移量
+        Private Const BossLaserSpeed As Double = 0.25 'BOSS雷射速度
 
-        Private Const BossLaserSpeed As Double = 0.25
-        Public MonsterHarm As Double = 0
+        Private CanDamageCharacter As Boolean = True '是否可以攻擊玩家
+        Private LastDamageCharacter As Long '上次攻擊玩家時間
+        Private DamageTimeGap As Long = 1000 '每次攻擊的間距時間 (ms)
 
-        Private CanDamageCharacter As Boolean = True
-        Private LastDamageCharacter As Long
-        Private DamageTimeGap As Long = 1000 'ms
+        Private MonsterLeft As Boolean '怪物偵測左
+        Private MonsterRight As Boolean '怪物偵測右
+        Private MonsterTop As Boolean '怪物偵測上
+        Private MonsterBottom As Boolean '怪物偵測下
 
-        Public MonsterLeft As Boolean
-        Public MonsterRight As Boolean
-        Public MonsterTop As Boolean
-        Public MonsterBottom As Boolean
+        Private MonsterAniIndex As Integer = 0 '怪物動畫
+        Private MonsterAniTimeGap As Long = 250 '怪物動畫每張圖片的間隔時間 (ms)
+        Private LastAnimation As Long = 0 '上次換圖片的時間
 
-        Private MonsterAniIndex As Integer = 0
-        Private MonsterAniTimeGap As Long = 250 'ms
-        Private LastAnimation As Long = 0
+        Public BossShouldAttack As Boolean = True 'BOSS是否該攻擊
 
-        Public BossShouldAttack As Boolean = True
-
+        '與遊戲同步變數
         Public Sub SyncWith(ByRef Game As Game)
             With Game
                 x = .x
@@ -920,6 +983,7 @@ Public Class Form1
             End With
         End Sub
 
+        '怪物偵測
         Public Sub MonsterDetect()
             WallDetectX0 = Math.Floor(MonsterX)
             WallDetectX08 = Math.Floor(MonsterX + MonsterWidth / 48 - 0.000001)
@@ -963,6 +1027,7 @@ Public Class Form1
             MonsterBottom = (Map(WallDetectY0, WallDetectX0) > 0 Or Map(WallDetectY0, WallDetectX08) > 0) And Math.Floor(MonsterY) < MonsterY And MonsterY < Math.Floor(MonsterY) + 1
         End Sub
 
+        '怪物重設
         Public Sub MonsterReset(LId As Integer, RId As Integer, x As Double, y As Double, Harm As Double)
             LeftId = LId
             RightId = RId
@@ -978,6 +1043,7 @@ Public Class Form1
             BossShouldAttack = True
         End Sub
 
+        '更新怪物外觀，並套用怪物傷害值
         Private Sub MonsterAppearanceUpdate(id As Integer)
             Select Case id
                 Case 0
@@ -1019,7 +1085,7 @@ Public Class Form1
                     MonsterMaxHealth = 250
                     Monster_Speed = 0.06
                     MonsterDetectArea = 3.5
-                    DamageTimeGap = 1000
+                    DamageTimeGap = 50
                 Case 5
                     MonsterImg = My.Resources.Game.Boss
                     MonsterWidth = 115.1535
@@ -1027,7 +1093,7 @@ Public Class Form1
                     MonsterMaxHealth = 250
                     Monster_Speed = 0.06
                     MonsterDetectArea = 3.5
-                    DamageTimeGap = 1000
+                    DamageTimeGap = 50
                 Case 6
                     MonsterImg = My.Resources.Game.BossMusicCore
                     MonsterWidth = 42
@@ -1044,280 +1110,356 @@ Public Class Form1
                     Monster_Speed = 0.06
                     MonsterDetectArea = 3.5
                     DamageTimeGap = 1000
+                Case 8
+                    MonsterImg = My.Resources.Game.RegenHealth
+                    MonsterWidth = 42
+                    MonsterHeight = 60
+                    MonsterMaxHealth = 99999999
+                    Monster_Speed = 0
+                    MonsterDetectArea = 1
+                    DamageTimeGap = 1000
+                Case 9
+                    MonsterImg = My.Resources.Game.RegenHealth
+                    MonsterWidth = 42
+                    MonsterHeight = 60
+                    MonsterMaxHealth = 99999999
+                    Monster_Speed = 0
+                    MonsterDetectArea = 1
+                    DamageTimeGap = 1000
             End Select
         End Sub
 
+        '畫怪物，並偵測子彈是否打到怪物
         Public Sub Draw(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef CanShoot As Boolean, ByRef CharacterHealth As Double, ByRef CharacterDamage As Double, ByRef CharacterShowDamage As Boolean, ByRef CharacterLastShowDamage As Long, CharacterHarmDamage As Double, volume As Integer, ByRef xp As Integer)
-
             CharacterBeenHit.settings.volume = volume
             Hit.settings.volume = volume
 
+            '如果怪物還活著
             If MonsterHealth > 0 Then
-                'HowToPlay的史萊姆
+                If Not Pause Then '如果沒有暫停
 
-                If Not Pause Then
+                    '史萊姆
                     If RightId = 1 Then
                         '怪物擋右牆
-                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then
-                            MonsterDirection = True
+                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then '如果角色在史萊姆右邊
+                            MonsterDirection = True '向右
 
-                            MonsterX += Monster_Speed
-                            MonsterAppearanceUpdate(RightId)
+                            MonsterX += Monster_Speed '向右
+                            MonsterAppearanceUpdate(RightId) '更新外觀，攻擊傷害
 
-                            MonsterDetect()
-                            If MonsterRight Then
-                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
+                            MonsterDetect() '偵測牆
+                            If MonsterRight Then '如果右邊有牆
+                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001) '卡住怪物
                             End If
                         End If
 
                         '怪物擋左牆
-                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then
-                            MonsterDirection = False
+                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then '如果角色在史萊姆左邊
+                            MonsterDirection = False '向左
 
-                            MonsterX -= Monster_Speed
-                            MonsterAppearanceUpdate(LeftId)
+                            MonsterX -= Monster_Speed '向左
+                            MonsterAppearanceUpdate(LeftId) '更新外觀，攻擊傷害
 
-                            MonsterDetect()
-                            If MonsterLeft Then
-                                MonsterX = Math.Floor(MonsterX) + 1
+                            MonsterDetect() '偵測牆
+                            If MonsterLeft Then '如果左邊有牆
+                                MonsterX = Math.Floor(MonsterX) + 1 '卡住怪物
                             End If
                         End If
 
-                        'Game的深淵怪物
+                        '深淵怪物
                     ElseIf RightId = 3 Then
                         '怪物擋右牆
-                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then
-                            MonsterDirection = True
+                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then '如果角色在深淵怪物右邊
+                            MonsterDirection = True '向右
 
-                            If Now.Ticks() / 10000 - LastAnimation > MonsterAniTimeGap Then
-                                MonsterAniIndex += 1
-                                If MonsterAniIndex + LeftId > 3 Then
-                                    MonsterAniIndex = 0
+                            '動畫
+                            If Now.Ticks() / 10000 - LastAnimation > MonsterAniTimeGap Then '如果時間到要放下一張圖片
+                                MonsterAniIndex += 1 '放下一張圖片
+                                If MonsterAniIndex + LeftId > 3 Then '如果圖片放過頭
+                                    MonsterAniIndex = 0 '圖片換為0
                                 End If
-                                MonsterAppearanceUpdate(MonsterAniIndex + LeftId)
-                                LastAnimation = Now.Ticks() / 10000
+                                MonsterAppearanceUpdate(MonsterAniIndex + LeftId) '更新外觀
+                                LastAnimation = Now.Ticks() / 10000 '上次更新動畫時間 = 現在
                             End If
 
-                            MonsterDetect()
-                            If MonsterRight Then
-                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
+                            MonsterDetect() '偵測牆
+                            If MonsterRight Then '如果右邊有牆
+                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001) '卡住怪物
                             End If
                         End If
 
                         '怪物擋左牆
-                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then
-                            MonsterDirection = False
+                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then '如果角色在深淵怪物左邊
+                            MonsterDirection = False '向左
 
-                            If Now.Ticks() / 10000 - LastAnimation > MonsterAniTimeGap Then
-                                MonsterAniIndex += 1
-                                If MonsterAniIndex + LeftId > 3 Then
-                                    MonsterAniIndex = 0
+                            If Now.Ticks() / 10000 - LastAnimation > MonsterAniTimeGap Then '如果時間到要放下一張圖片
+                                MonsterAniIndex += 1 '放下一張圖片
+                                If MonsterAniIndex + LeftId > 3 Then '如果圖片放過頭
+                                    MonsterAniIndex = 0 '圖片換為0
                                 End If
-                                MonsterAppearanceUpdate(MonsterAniIndex + LeftId)
-                                LastAnimation = Now.Ticks() / 10000
+                                MonsterAppearanceUpdate(MonsterAniIndex + LeftId) '更新外觀
+                                LastAnimation = Now.Ticks() / 10000 '上次更新動畫時間 = 現在
                             End If
 
-                            MonsterDetect()
-                            If MonsterLeft Then
-                                MonsterX = Math.Floor(MonsterX) + 1
+                            MonsterDetect() '偵測牆
+                            If MonsterLeft Then '如果左邊有牆
+                                MonsterX = Math.Floor(MonsterX) + 1 '卡住怪物
                             End If
                         End If
 
                         'Boss
                     ElseIf RightId = 5 Then
                         '怪物擋右牆
-                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then
-                            MonsterDirection = True
+                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then '如果角色在Boss右邊
+                            MonsterDirection = True '怪物向右
 
-                            MonsterAppearanceUpdate(RightId)
+                            MonsterAppearanceUpdate(RightId) '更新外觀
 
-                            MonsterDetect()
-                            If MonsterRight Then
-                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
+                            MonsterDetect() '偵測牆
+                            If MonsterRight Then '如果怪物右邊有牆
+                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001) '卡住怪物
                             End If
                         End If
 
                         '怪物擋左牆
-                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then
-                            MonsterDirection = False
+                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then '如果角色在Boss左邊
+                            MonsterDirection = False '怪物向左
 
-                            MonsterAppearanceUpdate(LeftId)
+                            MonsterAppearanceUpdate(LeftId) '更新外觀
 
-                            MonsterDetect()
-                            If MonsterLeft Then
-                                MonsterX = Math.Floor(MonsterX) + 1
+                            MonsterDetect() '偵測牆
+                            If MonsterLeft Then '如果怪物左邊有牆
+                                MonsterX = Math.Floor(MonsterX) + 1 '卡住怪物
                             End If
                         End If
 
+                        'Boss音樂核心
                     ElseIf RightId = 7 Then
                         '怪物擋右牆
-                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then
-                            MonsterDirection = True
+                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then '如果角色在Boss音樂核心右邊
+                            MonsterDirection = True '怪物向右
 
-                            MonsterAppearanceUpdate(RightId)
+                            MonsterAppearanceUpdate(RightId) '更新外觀
 
-                            MonsterDetect()
-                            If MonsterRight Then
-                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001)
+                            MonsterDetect() '偵測牆
+                            If MonsterRight Then '如果怪物右邊有牆
+                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001) '卡住怪物
                             End If
                         End If
 
                         '怪物擋左牆
-                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then
-                            MonsterDirection = False
+                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then '如果角色在Boss音樂核心左邊
+                            MonsterDirection = False '怪物向左
 
-                            MonsterAppearanceUpdate(LeftId)
+                            MonsterAppearanceUpdate(LeftId) '更新外觀
 
-                            MonsterDetect()
-                            If MonsterLeft Then
-                                MonsterX = Math.Floor(MonsterX) + 1
+                            MonsterDetect() '偵測牆
+                            If MonsterLeft Then '如果怪物左邊有牆
+                                MonsterX = Math.Floor(MonsterX) + 1 '卡住怪物
+                            End If
+                        End If
+
+                        '回血包
+                    ElseIf RightId = 9 Then
+                        '怪物擋右牆
+                        If CharacterX > MonsterX + MonsterWidth / 48 / 2 And CharacterX - MonsterX < MonsterDetectArea Then '如果角色在回血包右邊
+                            MonsterDirection = True '怪物向右
+
+                            MonsterAppearanceUpdate(RightId) '更新外觀
+
+                            MonsterDetect() '偵測牆
+                            If MonsterRight Then '如果怪物右邊有牆
+                                MonsterX = Math.Floor(MonsterX) + (Math.Ceiling(MonsterWidth / 48) - MonsterWidth / 48 - 0.000001) '卡住怪物
+                            End If
+                        End If
+
+                        '怪物擋左牆
+                        If CharacterX < MonsterX + MonsterWidth / 48 / 2 And MonsterX - CharacterX < MonsterDetectArea Then '如果角色在回血包左邊
+                            MonsterDirection = False '怪物向左
+
+                            MonsterAppearanceUpdate(LeftId) '更新外觀
+
+                            MonsterDetect() '偵測牆
+                            If MonsterLeft Then '如果怪物左邊有牆
+                                MonsterX = Math.Floor(MonsterX) + 1 '卡住怪物
                             End If
                         End If
                     End If
                 End If
 
-                If RightId = 5 And BossShouldAttack Then
-                    MonsterLaserDxLeft += BossLaserSpeed
+                '發射Boss雷射---------------------------------------------------------------------------------------------------------
+                If RightId = 5 And BossShouldAttack And Not Pause Then '如果是Boss，且可發射雷射，且不暫停
+                    MonsterLaserDxLeft += BossLaserSpeed '左雷射向左偏移雷射
+                    '畫雷射
                     e.Graphics.DrawImage(My.Resources.Game.BossLaser, New RectangleF(x + MonsterX * 48 * ScaleRatio - 328.62 * ScaleRatio - MonsterLaserDxLeft * 48 * ScaleRatio + CameraX,
                                                                                              y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio + 65 * ScaleRatio,
                                                                                              328.62 * ScaleRatio,
                                                                                              48 * ScaleRatio))
 
-                    If x + MonsterX * 48 * ScaleRatio - 328.62 * ScaleRatio - MonsterLaserDxLeft * 48 * ScaleRatio <= 0 Then
-                        MonsterLaserDxLeft = 0
+                    If x + MonsterX * 48 * ScaleRatio - 328.62 * ScaleRatio - MonsterLaserDxLeft * 48 * ScaleRatio <= 0 Then '如果雷射撞牆
+                        MonsterLaserDxLeft = 0 '雷射向左偏移 = 0
                     End If
 
-                    MonsterLaserDxRight += BossLaserSpeed
+                    MonsterLaserDxRight += BossLaserSpeed '右雷射向右偏移雷射
+                    '畫雷射
                     e.Graphics.DrawImage(My.Resources.Game.BossLaser, New RectangleF(x + MonsterX * 48 * ScaleRatio + MonsterWidth * ScaleRatio + MonsterLaserDxRight * 48 * ScaleRatio + CameraX,
                                                                                              y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio + 65 * ScaleRatio,
                                                                                              328.62 * ScaleRatio,
                                                                                              48 * ScaleRatio))
-                    If x + MonsterX * 48 * ScaleRatio - 328.62 * ScaleRatio + MonsterLaserDxRight * 48 * ScaleRatio >= x + Map_Width * 48 * ScaleRatio Then
-                        MonsterLaserDxRight = 0
+                    If x + MonsterX * 48 * ScaleRatio - 328.62 * ScaleRatio + MonsterLaserDxRight * 48 * ScaleRatio >= x + Map_Width * 48 * ScaleRatio Then '如果雷射撞牆
+                        MonsterLaserDxRight = 0 '雷射向右偏移 = 0
                     End If
                 End If
 
-                If Not Pause Then
-                    '怪物重力
-                    MonsterYv -= G
-                    MonsterY += MonsterYv * 5
-                    MonsterDetect()
-                    If MonsterTop Then
-                        MonsterY = Math.Floor(MonsterY + MonsterHeight / 48) - MonsterHeight / 48
+                '怪物重力---------------------------------------------------------------------------------------------------------
+                If Not Pause Then '如果沒有暫停
+                    MonsterYv -= G '向下速度
+                    MonsterY += MonsterYv * 5 '根據Y軸速度，移動怪物
+                    MonsterDetect() '偵測牆
+                    If MonsterTop Then '如果上方有牆
+                        MonsterY = Math.Floor(MonsterY + MonsterHeight / 48) - MonsterHeight / 48 '卡住怪物
                     End If
-                    MonsterDetect()
-                    If MonsterBottom Then
-                        MonsterY = Math.Floor(MonsterY) + 1
-                        MonsterYv = 0
+                    MonsterDetect() '偵測牆
+                    If MonsterBottom Then '如果下方有牆
+                        MonsterY = Math.Floor(MonsterY) + 1 '卡住怪物
+                        MonsterYv = 0 'Y軸速度 = 0
                     End If
                 End If
 
+                '畫怪物---------------------------------------------------------------------------------------------------------
                 '設定怪物要畫的地方
                 MonsterBox = New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio,
                                                     y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio,
                                                     MonsterWidth * ScaleRatio,
                                                     MonsterHeight * ScaleRatio)
+                e.Graphics.DrawImage(MonsterImg, MonsterBox) '畫怪物
 
-                '畫怪物
-                e.Graphics.DrawImage(MonsterImg, MonsterBox)
+                '偵測子彈是否打到怪物---------------------------------------------------------------------------------------------------------
+                If Not Pause And RightId <> 9 Then '如果沒有暫停，且不是回血包
+                    If CanShoot = False Then '如果不能射(代表正在射)
+                        If BulletDirection = False And CharacterShootX < MonsterX And '如果子彈向左
+                               BulletX > MonsterX And '子彈在怪物左邊
+                               ((MonsterY < BulletY And BulletY < MonsterY + MonsterHeight / 48) Or (MonsterY < BulletY + 0.5 And BulletY + 0.5 < MonsterY + MonsterHeight / 48)) Then '子彈Y座標有擦到怪物
 
-                If Not Pause Then
-                    '偵測子彈是否打到怪物
-                    If CanShoot = False Then
-                        If BulletDirection = False And CharacterShootX < MonsterX And
-                               BulletX > MonsterX And
-                               ((MonsterY < BulletY And BulletY < MonsterY + MonsterHeight / 48) Or (MonsterY < BulletY + 0.5 And BulletY + 0.5 < MonsterY + MonsterHeight / 48)) Then
+                            Damage = CharacterHarmDamage '設定傷害數值
+                            MonsterHealth -= Damage '造成傷害
+                            LastShowDamage = Now.Ticks() / 10000 '更新上次顯示時間
 
-                            Damage = CharacterHarmDamage
-                            MonsterHealth -= Damage
-                            LastShowDamage = Now.Ticks() / 10000
-                            ShowDamage = True
+                            DamageTextBulletX = BulletX '更新被打到的X座標
 
+                            ShowDamage = True '顯示傷害
+
+                            '播放音效
                             Hit.URL = My.Application.Info.DirectoryPath & "\Music\打到.mp3" '選擇路徑
                             Hit.settings.setMode("loop", False) '設定是否循環
                             Hit.controls.play() '播放
 
-                            CanShoot = True
-                        ElseIf BulletDirection = True And CharacterShootX > MonsterX And
-                                   BulletX < MonsterX + MonsterWidth / 48 And
-                                   ((MonsterY < BulletY And BulletY < MonsterY + MonsterHeight / 48) Or (MonsterY < BulletY + 0.5 And BulletY + 0.5 < MonsterY + MonsterHeight / 48)) Then
+                            CanShoot = True '可以射(代表射到怪物)
 
-                            Damage = CharacterHarmDamage
-                            MonsterHealth -= Damage
-                            LastShowDamage = Now.Ticks() / 10000
-                            ShowDamage = True
+                        ElseIf BulletDirection = True And CharacterShootX > MonsterX And '如果子彈向右
+                                   BulletX < MonsterX + MonsterWidth / 48 And '子彈在怪物右邊
+                                   ((MonsterY < BulletY And BulletY < MonsterY + MonsterHeight / 48) Or (MonsterY < BulletY + 0.5 And BulletY + 0.5 < MonsterY + MonsterHeight / 48)) Then '子彈Y座標有擦到怪物
 
+                            Damage = CharacterHarmDamage '設定傷害數值
+                            MonsterHealth -= Damage '造成傷害
+                            LastShowDamage = Now.Ticks() / 10000 '更新上次顯示時間
+
+                            DamageTextBulletX = BulletX '更新被打到的X座標
+
+                            ShowDamage = True '顯示傷害
+
+                            '播放音效
                             Hit.URL = My.Application.Info.DirectoryPath & "\Music\打到.mp3" '選擇路徑
                             Hit.settings.setMode("loop", False) '設定是否循環
                             Hit.controls.play() '播放
 
-                            CanShoot = True
+                            CanShoot = True '可以射(代表射到怪物)
                         End If
                     End If
                 End If
 
-                '畫怪物血量
-                e.Graphics.FillRectangle(Brushes.White, New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio + 5 * ScaleRatio,
-                                                                               y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio - 10 * ScaleRatio,
-                                                                               MonsterWidth * ScaleRatio,
-                                                                               5 * ScaleRatio))
-                e.Graphics.FillRectangle(Brushes.Red, New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio + 5 * ScaleRatio,
-                                                                               y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio - 10 * ScaleRatio,
-                                                                               MonsterWidth * ScaleRatio * MonsterHealth / MonsterMaxHealth,
-                                                                               5 * ScaleRatio))
+                If RightId <> 9 Then '如果不是回血包
+                    '畫怪物血量
+                    e.Graphics.FillRectangle(Brushes.White, New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio + 5 * ScaleRatio,
+                                                                                   y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio - 10 * ScaleRatio,
+                                                                                   MonsterWidth * ScaleRatio,
+                                                                                   5 * ScaleRatio))
+                    e.Graphics.FillRectangle(Brushes.Red, New RectangleF(x + CameraX + MonsterX * 48 * ScaleRatio + 5 * ScaleRatio,
+                                                                                   y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight * ScaleRatio - 10 * ScaleRatio,
+                                                                                   MonsterWidth * ScaleRatio * MonsterHealth / MonsterMaxHealth,
+                                                                                   5 * ScaleRatio))
+                End If
+
                 '顯示傷害
-                If ShowDamage Then
-                    If Now.Ticks() / 10000 - LastShowDamage > ShowDamageTime Then
-                        ShowDamage = False
+                If ShowDamage And RightId <> 9 Then '如果要顯示傷害，且不是回血包
+                    If Now.Ticks() / 10000 - LastShowDamage > ShowDamageTime Then '如果顯示時間超過設定時間
+                        ShowDamage = False '停止顯示
                     Else
-                        DamageText.point.X = x + BulletX * ScaleRatio * 48 + CameraX
+                        '畫傷害文字
+                        DamageText.point.X = x + DamageTextBulletX * ScaleRatio * 48 + CameraX
                         DamageText.point.Y = y + CameraY + (height - Map_Height * 48 * ScaleRatio) + (Map_Height - MonsterY) * 48 * ScaleRatio - MonsterHeight / 2 * ScaleRatio
-                        DamageText.Draw(CStr(Damage), e, myfont, ScaleRatio)
+                        DamageText.Draw("-" & CStr(Damage), e, myfont, ScaleRatio)
                     End If
                 End If
 
                 If Not Pause Then
                     '傷害角色
-                    If CanDamageCharacter And
-                            CharacterX - 0.2 < MonsterX + MonsterWidth / 48 / 2 And MonsterX + MonsterWidth / 48 / 2 < CharacterX + 1 And
-                            ((CharacterY < MonsterY + MonsterHeight / 48 / 2 And MonsterY + MonsterHeight / 48 / 2 < CharacterY + 1.8) Or ((CharacterY < MonsterY + 0.1 And MonsterY + 0.1 < CharacterY + 1.8))) Then
+                    If CanDamageCharacter And '如果可以攻擊角色
+                       CharacterX - 0.2 < MonsterX + MonsterWidth / 48 / 2 And MonsterX + MonsterWidth / 48 / 2 < CharacterX + 1 And '角色X座標碰到怪物X座標
+                       ((CharacterY < MonsterY + MonsterHeight / 48 / 2 And MonsterY + MonsterHeight / 48 / 2 < CharacterY + 1.8) Or ((CharacterY < MonsterY + 0.1 And MonsterY + 0.1 < CharacterY + 1.8))) Then '角色Y座標碰到怪物Y座標
 
                         CharacterDamage = MonsterHarm
-                        CharacterHealth -= CharacterDamage
-                        CharacterShowDamage = True
-                        CharacterLastShowDamage = Now.Ticks() / 10000
-                        LastDamageCharacter = Now.Ticks() / 10000
+                        CharacterHealth -= CharacterDamage '讓角色受傷
+                        CharacterShowDamage = True '讓角色顯示傷害
+                        CharacterLastShowDamage = Now.Ticks() / 10000 '更新角色上次顯示傷害時間
+                        LastDamageCharacter = Now.Ticks() / 10000 '更新上次攻擊角色時間
 
-                        CharacterBeenHit.URL = My.Application.Info.DirectoryPath & "\Music\被打.mp3" '選擇路徑
-                        CharacterBeenHit.settings.setMode("loop", False) '設定是否循環
-                        CharacterBeenHit.controls.play() '播放
+                        If RightId = 9 Then '如果是回血包
+                            MonsterHealth = 0 '讓回血包消失
+                            '播放補血音效
+                            CharacterBeenHit.URL = My.Application.Info.DirectoryPath & "\Music\補血.mp3" '選擇路徑
+                            CharacterBeenHit.settings.setMode("loop", False) '設定是否循環
+                            CharacterBeenHit.controls.play() '播放
+                        Else
+                            '播放被打音效
+                            CharacterBeenHit.URL = My.Application.Info.DirectoryPath & "\Music\被打.mp3" '選擇路徑
+                            CharacterBeenHit.settings.setMode("loop", False) '設定是否循環
+                            CharacterBeenHit.controls.play() '播放
+                        End If
 
-                        CanDamageCharacter = False
+                        CanDamageCharacter = False '不可以傷害角色
                     End If
 
-                    If RightId = 5 And BossShouldAttack And
+                    'Boss雷射
+                    If RightId = 5 And BossShouldAttack And CanDamageCharacter And '如果是Boss，且可以設射雷射，且可以傷害角色，且角色碰到雷射
                             (((MonsterX - MonsterLaserDxLeft - 328.62 / 48 < CharacterX - 0.2 And CharacterX - 0.2 < MonsterX - MonsterLaserDxLeft) Or (MonsterX - MonsterLaserDxLeft - 328.62 / 48 < CharacterX + 1 And CharacterX + 1 < MonsterX - MonsterLaserDxLeft)) Or
                             ((MonsterX + MonsterLaserDxRight < CharacterX - 0.2 And CharacterX - 0.2 < MonsterX + MonsterLaserDxRight + 328.62 / 48) Or (MonsterX + MonsterLaserDxRight < CharacterX + 1 And CharacterX + 1 < MonsterX + MonsterLaserDxRight + 328.62 / 48))) And
                             ((MonsterY + MonsterHeight / 48 - 65 / 48 - 1 < CharacterY + 1.8 And CharacterY + 1.8 < MonsterY + MonsterHeight / 48 - 65 / 48) Or (MonsterY + MonsterHeight / 48 - 65 / 48 - 1 < CharacterY + 0.1 And CharacterY + 0.1 < MonsterY + MonsterHeight / 48 - 65 / 48)) Then
 
                         CharacterDamage = MonsterHarm
-                        CharacterHealth -= CharacterDamage
-                        CharacterShowDamage = True
-                        CharacterLastShowDamage = Now.Ticks() / 10000
-                        LastDamageCharacter = Now.Ticks() / 10000
+                        CharacterHealth -= CharacterDamage '讓角色受傷
+                        CharacterShowDamage = True '讓角色顯示傷害
+                        CharacterLastShowDamage = Now.Ticks() / 10000 '更新角色上次顯示傷害時間
+                        LastDamageCharacter = Now.Ticks() / 10000 '更新上次攻擊角色時間
 
+                        '播放被打音效
                         CharacterBeenHit.URL = My.Application.Info.DirectoryPath & "\Music\被打.mp3" '選擇路徑
                         CharacterBeenHit.settings.setMode("loop", False) '設定是否循環
                         CharacterBeenHit.controls.play() '播放
+
+                        CanDamageCharacter = False '不可以傷害角色
                     End If
 
-                    If Now.Ticks() / 10000 - LastDamageCharacter > DamageTimeGap Then
-                        CanDamageCharacter = True
+                    If Now.Ticks() / 10000 - LastDamageCharacter > DamageTimeGap Then '如果距離上次攻擊角色的時間到
+                        CanDamageCharacter = True '可以傷害角色
                     End If
                 End If
 
+                '怪物死掉
             ElseIf MonsterHealth <= 0 And MonsterHasNotDied Then
                 MonsterHasNotDied = False
+
+                '加分
                 Select Case RightId
                     Case 1
                         xp += SlimeXp
@@ -1328,7 +1470,9 @@ Public Class Form1
                     Case 7
                         xp += BossMusicCoreXp
                 End Select
-                If RightId <> 5 Then
+
+                If RightId <> 5 And RightId <> 9 Then '如果不是Boss或回血包
+                    '播放加分音效
                     Hit.URL = My.Application.Info.DirectoryPath & "\Music\加分.mp3" '選擇路徑
                     Hit.settings.setMode("loop", False) '設定是否循環
                     Hit.controls.play() '播放
@@ -1351,6 +1495,8 @@ Public Class Form1
     Const OpeningGapSpeed As Double = 1000 '開場動畫淡入淡出的速度 (ms)
     Const OpeningSpeed As Integer = 2000 '每個開場動畫持續的時間 (ms)
     Const ShowDamageTime As Double = 250 '顯示傷害數值的時間 (ms)
+
+    Const RegenHealthChance As Double = 50 '不出現回血包的機率 (%)
 
     Const SlimeXp As Integer = 30
     Const AbyssXp As Integer = 75
@@ -1573,6 +1719,9 @@ Public Class Form1
     Dim Boss As New Monster
     Dim BossMusicCore As New Monster
 
+    Dim RegenHealth As New Monster
+    Dim RegenHealth2 As New Monster
+
     Dim Xp As Integer = 0
     Dim XpText As New MyTextBox With {.font = "Cubic11", .font_size = 18.75, .color = Color.Green, .LineAlign = "Center", .Align = "Center"}
     Dim XpBG As New MyPictureBox With {.Image = My.Resources.Game.XPBG}
@@ -1598,6 +1747,7 @@ Public Class Form1
     Dim EndGameXpText As New MyTextBox With {.font = "Cubic11", .font_size = 18.75, .color = Color.White, .LineAlign = "Center", .Align = "Center"}
 
     Private Sub Form1_Paint(sender As Object, e As PaintEventArgs) Handles MyBase.Paint
+        '畫背景
         If BGisOn Then
             '調整背景白色條紋的角度
             BGAnimation += 0.075
@@ -1614,17 +1764,20 @@ Public Class Form1
             e.Graphics.FillRectangle(BGBrush, New RectangleF(0, 0, MyWidth, MyHeight)) '繪製背景
         End If
 
-        If LoadingShow Then
-            LoadingIndex += 1
-            If LoadingIndex >= LoadingSeq.Length() - 1 Then
-                LoadingIndex = 0
+        '畫載入圈圈
+        If LoadingShow Then '如果要顯示載入圈圈
+            LoadingIndex += 1 '下一張圖片
+            If LoadingIndex >= LoadingSeq.Length() - 1 Then '如果圖片放過頭
+                LoadingIndex = 0 '回到第0張圖片
             End If
 
+            '畫圈圈
             Loading.BoxSetting(MyWidth - 50 * ScaleRatio, MyHeight - 50 * ScaleRatio, 30 * ScaleRatio, 30 * ScaleRatio)
             Loading.Image = LoadingSeq(LoadingIndex)
             Loading.Draw(e)
         End If
 
+        '依照狀態更新畫面
         Select Case State
             Case "Start"
                 BGisOn = True
@@ -1918,21 +2071,25 @@ Public Class Form1
                 Button11.Box = New RectangleF(64 * ScaleRatio, 140 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
                 If Button11.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     MainGame.level = 0
+                    MainGame.Map = MainGame1_Map
                     LevelPreview.Image = My.Resources.SelectLevel._1_1Preview
                 End If
                 Button12.Box = New RectangleF(64 * ScaleRatio, 206 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
                 If Button12.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     MainGame.level = 1
+                    MainGame.Map = MainGame2_Map
                     LevelPreview.Image = My.Resources.SelectLevel._1_2Preview
                 End If
                 Button13.Box = New RectangleF(64 * ScaleRatio, 272 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
                 If Button13.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     MainGame.level = 2
+                    MainGame.Map = MainGame3_Map
                     LevelPreview.Image = My.Resources.SelectLevel._1_3Preview
                 End If
                 Button14.Box = New RectangleF(64 * ScaleRatio, 338 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
                 If Button14.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     MainGame.level = 3
+                    MainGame.Map = MainGame4_Map
                     LevelPreview.Image = My.Resources.SelectLevel._1_4Preview
                 End If
 
@@ -1970,6 +2127,14 @@ Public Class Form1
                         Abyssosque1.MonsterReset(2, 3, 16.4, 1, 750)
                         Abyssosque2.MonsterReset(2, 3, 20.4, 1, 750)
                         Abyssosque3.MonsterReset(2, 3, 24.4, 1, 750)
+                        RegenHealth.MonsterReset(8, 9, RandomInt(12, 23), 11, -RandomInt(20, 30))
+                        If RandomInt(0, 100) < RegenHealthChance Then
+                            RegenHealth.MonsterHealth = 0
+                        End If
+                        RegenHealth2.MonsterReset(8, 9, RandomInt(12, 23), 8, -RandomInt(20, 30))
+                        If RandomInt(0, 100) < RegenHealthChance Then
+                            RegenHealth2.MonsterHealth = 0
+                        End If
                     Case 1
                         MainGame.CameraReset()
                         MainGame.MapSetting(32, 15)
@@ -1984,6 +2149,14 @@ Public Class Form1
                         Abyssosque4.MonsterReset(2, 3, 10.4, 1, 750)
                         Abyssosque5.MonsterReset(2, 3, 22.4, 1, 750)
                         Abyssosque6.MonsterReset(2, 3, 26.4, 1, 750)
+                        RegenHealth.MonsterReset(8, 9, RandomInt(12, 14), 11, -RandomInt(20, 30))
+                        If RandomInt(0, 100) < RegenHealthChance Then
+                            RegenHealth.MonsterHealth = 0
+                        End If
+                        RegenHealth2.MonsterReset(8, 9, RandomInt(22, 26), 9, -RandomInt(20, 30))
+                        If RandomInt(0, 100) < RegenHealthChance Then
+                            RegenHealth2.MonsterHealth = 0
+                        End If
                     Case 2
                         MainGame.CameraReset(-1530 * ScaleRatio + MyWidth)
                         MainGame.MapSetting(32, 15)
@@ -2000,13 +2173,20 @@ Public Class Form1
                         Abyssosque6.MonsterReset(2, 3, 10.4, 8, 750)
                         Abyssosque7.MonsterReset(2, 3, 20.4, 9, 750)
                         Abyssosque8.MonsterReset(2, 3, 24.4, 9, 750)
+                        RegenHealth.MonsterReset(8, 9, RandomInt(4, 9), 11, -RandomInt(20, 30))
+                        If RandomInt(0, 100) < RegenHealthChance Then
+                            RegenHealth.MonsterHealth = 0
+                        End If
                     Case 3
+                        MainGame.Map(1, 21) = 4
+                        MainGame.Map(3, 21) = 4
+
                         MainGame.CameraReset()
                         MainGame.MapSetting(33, 15)
                         MainGame.Map = MainGame4_Map
                         MainGame.CharacterReset(1.1, 1)
 
-                        Boss.MonsterReset(4, 5, 18.1, 5, 1.5)
+                        Boss.MonsterReset(4, 5, 18.1, 5, 6.5)
                         BossMusicCore.MonsterReset(6, 7, 21, 12, 20)
 
                         Slime1.MonsterReset(0, 1, RandomInt(15, 26), 1, RandomInt(20, 30))
@@ -2017,11 +2197,19 @@ Public Class Form1
                         Abyssosque4.MonsterReset(2, 3, 19, 11, 750)
                         Abyssosque5.MonsterReset(2, 3, 23, 11, 750)
                         Abyssosque6.MonsterReset(2, 3, 25, 11, 750)
+                        RegenHealth.MonsterReset(8, 9, RandomInt(9, 28), 1, -RandomInt(20, 30))
+                        If RandomInt(0, 100) < RegenHealthChance Then
+                            RegenHealth.MonsterHealth = 0
+                        End If
+                        RegenHealth2.MonsterReset(8, 9, RandomInt(13, 16), 11, -RandomInt(20, 30))
+                        If RandomInt(0, 100) < RegenHealthChance Then
+                            RegenHealth2.MonsterHealth = 0
+                        End If
                 End Select
 
             Case "Game"
                 MainGame.BoxSetting(0, 0, MyWidth, MyHeight)
-                    MainGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed, SoundEffect.settings.volume)
+                MainGame.DrawGame(e, ScaleRatio, Keyboard, Mouse, MousePressed, SoundEffect.settings.volume)
 
                 Select Case MainGame.level
                     Case 0
@@ -2035,6 +2223,10 @@ Public Class Form1
                         Abyssosque2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque3.SyncWith(MainGame)
                         Abyssosque3.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        RegenHealth.SyncWith(MainGame)
+                        RegenHealth.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        RegenHealth2.SyncWith(MainGame)
+                        RegenHealth2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
 
                         If MainGame.CharacterX >= 30 And MainGame.CharacterY >= 6 Then
                             MainGame.level = 1
@@ -2059,6 +2251,11 @@ Public Class Form1
                         Abyssosque5.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque6.SyncWith(MainGame)
                         Abyssosque6.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        RegenHealth.SyncWith(MainGame)
+                        RegenHealth.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        RegenHealth2.SyncWith(MainGame)
+                        RegenHealth2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+
                         If MainGame.CharacterX >= 30 And MainGame.CharacterY >= 12 Then
                             MainGame.level = 2
                             State = "NextLevel"
@@ -2086,6 +2283,9 @@ Public Class Form1
                         Abyssosque7.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque8.SyncWith(MainGame)
                         Abyssosque8.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        RegenHealth.SyncWith(MainGame)
+                        RegenHealth.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+
                         If MainGame.CharacterX >= 30 And MainGame.CharacterY >= 5 Then
                             MainGame.level = 3
                             State = "NextLevel"
@@ -2115,73 +2315,91 @@ Public Class Form1
                         Abyssosque5.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
                         Abyssosque6.SyncWith(MainGame)
                         Abyssosque6.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        RegenHealth.SyncWith(MainGame)
+                        RegenHealth.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
+                        RegenHealth2.SyncWith(MainGame)
+                        RegenHealth2.Draw(e, ScaleRatio, MainGame.CanShoot, MainGame.CharacterHealth, MainGame.Damage, MainGame.ShowDamage, MainGame.LastShowDamage, MainGame.CharacterHarmDamage, SoundEffect.settings.volume, Xp)
 
-                        If BossMusicCore.MonsterHealth > 0 Then
+                        If BossMusicCore.MonsterHealth > 0 Then '如果音樂核心沒被打掉
+                            '畫傳輸能量雷射
                             e.Graphics.DrawLine(New Pen(Color.Red, 3 * ScaleRatio),
                                                 New PointF(BossMusicCore.MonsterX * 48 * ScaleRatio + MainGame.CameraX + BossMusicCore.MonsterWidth / 2 * ScaleRatio,
                                                            MainGame.CameraY + (MainGame.height - MainGame.Map_Height * 48 * ScaleRatio) + (MainGame.Map_Height - (BossMusicCore.MonsterY - 0.5)) * 48 * ScaleRatio - BossMusicCore.MonsterHeight * ScaleRatio),
                                                 New PointF(Boss.MonsterX * 48 * ScaleRatio + MainGame.CameraX + Boss.MonsterWidth / 2 * ScaleRatio,
                                                            MainGame.CameraY + (MainGame.height - MainGame.Map_Height * 48 * ScaleRatio) + (MainGame.Map_Height - (Boss.MonsterY - 1.35)) * 48 * ScaleRatio - Boss.MonsterHeight * ScaleRatio))
                         Else
+                            '解除柵欄
                             MainGame.Map(1, 21) = 0
                             MainGame.Map(3, 21) = 0
+                            'Boss不可射雷射
                             Boss.BossShouldAttack = False
                         End If
 
+                        '如果Boss死
                         If Boss.MonsterHealth <= 0 Then
-                            If DimScreen = -1 Then
-                                DimScreen = 0
-                                PlaySound(BGM, "勝利結束.mp3", False)
-                                EndGameStartTime = Now.Ticks() / 10000
+                            If DimScreen = -1 Then '如果初次播放變暗動畫
+                                DimScreen = 0 '重設變暗動畫
+                                PlaySound(BGM, "勝利結束.mp3", False) '撥放結尾音效
+                                EndGameStartTime = Now.Ticks() / 10000 '開始計時
                             End If
 
-                            DimScreen += 5
-                            If DimScreen >= 255 Then
-                                DimScreen = 255
+                            DimScreen += 5 '變暗
+                            If DimScreen >= 255 Then '如果變到最暗
+                                DimScreen = 255 '強制變成最暗
                                 State = "EndGame"
-                                BGisOn = True
+                                BGisOn = True '顯示背景
+                            Else
+                                '顯示變暗動畫
+                                e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(DimScreen, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
                             End If
-
-                            e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(DimScreen, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
                         End If
                 End Select
 
+                '畫分數
                 XpBG.Box = New RectangleF(0, MyHeight - 45.125 * ScaleRatio, 138 * ScaleRatio, 45.125 * ScaleRatio)
-                    XpBG.Draw(e)
-                    XpText.point.X = 138 / 2 * ScaleRatio
-                    XpText.point.Y = MyHeight - 45.125 / 2 * ScaleRatio + 2.5 * ScaleRatio
-                    XpText.Draw("分數 " & CStr(Xp), e, myfont, ScaleRatio)
+                XpBG.Draw(e)
+                XpText.point.X = 138 / 2 * ScaleRatio
+                XpText.point.Y = MyHeight - 45.125 / 2 * ScaleRatio + 2.5 * ScaleRatio
+                XpText.Draw("分數 " & CStr(Xp), e, myfont, ScaleRatio)
 
+                '如果角色死亡
                 If MainGame.CharacterDied Then
-                    If DimScreen = -1 Then
-                        DimScreen = 0
-                        BGM.controls.stop()
-                        PlaySound(SoundEffect, "死掉.mp3", False)
+                    If DimScreen = -1 Then '如果初次播放變暗動畫
+                        DimScreen = 0 '重設變暗動畫
+                        BGM.controls.stop() '停止撥放BGM
+                        PlaySound(SoundEffect, "死掉.mp3", False) '撥放死掉音效
                     End If
 
-                    DimScreen += 5
-                    If DimScreen >= 255 Then
-                        DimScreen = 255
+                    DimScreen += 5 '變暗
+                    If DimScreen >= 255 Then '如果變到最暗
+                        DimScreen = 255 '強制變成最暗
                         State = "DiedMenu"
-                        MainGame.CharacterHealthReset()
-                        DiedMessage = DiedMessageArray(RandomInt(0, DiedMessageArray.Length() - 1))
+                        MainGame.CharacterHealthReset() '角色血量重設
+                        BGisOn = True '顯示背景
+                        DiedMessage = DiedMessageArray(RandomInt(0, DiedMessageArray.Length() - 1)) '隨機選擇要顯示的死亡訊息
                     End If
 
+                    '畫背景
                     e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(DimScreen, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
                 End If
 
+                '如果沒有暫停，且角色沒死
                 If Not MainGame.Pause And Not MainGame.CharacterDied Then
+                    '暫停按鈕設定外框
                     PauseButton.Box = New RectangleF(147 * ScaleRatio, MyHeight - 31 * ScaleRatio, 40.8475 * ScaleRatio, 21.4067 * ScaleRatio)
-                    If PauseButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
-                        BGM.controls.pause()
-                        BGisOn = True
-                        MainGame.Pause = True
+                    If PauseButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then '如果按下按鈕
+                        BGM.controls.pause() 'BGM暫停
+                        BGisOn = True '顯示背景
+                        MainGame.Pause = True '暫停遊戲
                     End If
                 End If
 
+                '如果遊戲暫停，且角色沒死
                 If MainGame.Pause And Not MainGame.CharacterDied Then
+                    '畫半透明背景
                     e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(127, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
 
+                    '畫按鈕------------------------------------
                     ToMenuButton.Box = New RectangleF(MyWidth / 2 - 309 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
                     If ToMenuButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                         State = "ToMenu"
@@ -2199,11 +2417,13 @@ Public Class Form1
                         State = "InGameSetting"
                     End If
 
+                    '顯示遊戲已暫停
                     Pause.point.X = MyWidth / 2
                     Pause.point.Y = MyHeight / 2 - 10 * ScaleRatio
                     Pause.Draw("遊戲已暫停", e, myfont, ScaleRatio)
                 End If
 
+            '在遊戲內的設定
             Case "InGameSetting"
                 SettingText.point.X = 50 * ScaleRatio
                 SettingText.point.Y = 42 * ScaleRatio
@@ -2226,9 +2446,8 @@ Public Class Form1
                     State = "Game"
                 End If
 
+            '死亡介面
             Case "DiedMenu"
-                e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(255, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
-
                 EndButton.Box = New RectangleF(MyWidth / 2 - 210 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
                 If EndButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
                     State = "ToMenu"
@@ -2246,6 +2465,7 @@ Public Class Form1
                 DiedXpText.point.Y = MyHeight / 2 + 5 * ScaleRatio
                 DiedXpText.Draw("分數 " & CStr(Xp), e, myfont, ScaleRatio)
 
+            '完成遊戲
             Case "EndGame"
                 If Now.Ticks() / 10000 - EndGameStartTime > 22000 Then
                     State = "ToMenu"
@@ -2264,6 +2484,7 @@ Public Class Form1
                     State = "ToMenu"
                 End If
 
+            '離開遊戲
             Case "Exit"
                 WMPExit(BGM)
                 WMPExit(SoundEffect)
@@ -2271,16 +2492,16 @@ Public Class Form1
                 Me.Close()
         End Select
 
-        '除錯面板開
+        '除錯面板開-------------------------------------------------------------------------------------------------------------------------------------------
         If DebugPanelOn Then
+            '計算FPS
             Frametime = Now.Ticks() / 10000 - lastUpdate
             FPS = 1 / (Frametime / 1000)
-            DebugInfo.Draw("Mosche Barton " & vbNewLine &
-                           Version & vbNewLine &
-                           CStr(MyWidth) & "x" & CStr(MyHeight) & vbNewLine &
-                           "Scale by " & CStr(ScaleRatio) & vbNewLine &
+            DebugInfo.Draw("Mosche Barton " & Version & vbNewLine &
+                           CStr(Math.Round(My.Computer.Info.TotalPhysicalMemory / 1000000 - My.Computer.Info.AvailablePhysicalMemory / 1000000)) & " / " & CStr(Math.Round(My.Computer.Info.TotalPhysicalMemory / 1000000)) & " MB" & vbNewLine &
+                           CStr(MyWidth) & "x" & CStr(MyHeight) & " Scale by " & CStr(ScaleRatio) & vbNewLine & vbNewLine &
                            "FPS " & CStr(Math.Round(FPS, 2)) & vbNewLine &
-                           "Frametime " & CStr(Math.Round(Frametime, 2)) & vbNewLine &
+                           "Frametime " & CStr(Math.Round(Frametime, 2)) & vbNewLine & vbNewLine &
                            "State " & State & vbNewLine & vbNewLine &
                            "BGM.volume = " & CStr(BGM.settings.volume) & vbNewLine &
                            "SE.volume = " & CStr(SoundEffect.settings.volume) & vbNewLine &
@@ -2293,10 +2514,12 @@ Public Class Form1
         End If
     End Sub
 
+    '更新螢幕畫面-------------------------------------------------------------------------------------------------------------------------------------
     Private Sub ScreenRefresh_Tick(sender As Object, e As EventArgs)
         Me.Invalidate()
     End Sub
 
+    '程式載入----------------------------------------------------------------------------------------------------------------------------------------------
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         'Timer的東西
         ScreenRefresh.SynchronizingObject = Me '使Timer的事件依附在本體的執行緒
@@ -2320,6 +2543,7 @@ Public Class Form1
             Keyboard(i) = False
         Next
 
+        '設定自訂字體
         DemoGame.myfont = myfont
         DemoMonster.myfont = myfont
         MainGame.myfont = myfont
@@ -2336,7 +2560,9 @@ Public Class Form1
         Abyssosque8.myfont = myfont
         Boss.myfont = myfont
         BossMusicCore.myfont = myfont
+        RegenHealth.myfont = myfont
 
+        '調整遊戲預設音量
         BGM.settings.volume = 100
         SoundEffect.settings.volume = 100
     End Sub
@@ -2352,12 +2578,14 @@ Public Class Form1
         Me.Invalidate()
     End Sub
 
+    '鍵盤按下
     Private Sub Form1_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
         If e.KeyValue <= 255 Then
             Keyboard(e.KeyValue) = True
         End If
     End Sub
 
+    '鍵盤抬起
     Private Sub Form1_KeyUp(sender As Object, e As KeyEventArgs) Handles MyBase.KeyUp
         If e.KeyValue <= 255 Then
             Keyboard(e.KeyValue) = False
@@ -2381,15 +2609,18 @@ Public Class Form1
         End If
     End Sub
 
+    '滑鼠移動
     Private Sub Form1_MouseMove(sender As Object, e As MouseEventArgs) Handles MyBase.MouseMove
         Mouse.X = e.X
         Mouse.Y = e.Y
     End Sub
 
+    '滑鼠按下
     Private Sub Form1_MouseDown(sender As Object, e As MouseEventArgs) Handles MyBase.MouseDown
         MousePressed = True
     End Sub
 
+    '滑鼠抬起
     Private Sub Form1_MouseUp(sender As Object, e As MouseEventArgs) Handles MyBase.MouseUp
         MousePressed = False
     End Sub

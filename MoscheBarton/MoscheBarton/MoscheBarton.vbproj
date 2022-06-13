@@ -276,6 +276,9 @@
     <Content Include="Music\被打.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Music\補血.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Music\開場配音.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

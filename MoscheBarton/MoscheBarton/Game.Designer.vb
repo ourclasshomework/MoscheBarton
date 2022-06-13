@@ -417,6 +417,16 @@ Namespace My.Resources
         '''<summary>
         '''  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
         '''</summary>
+        Friend Shared ReadOnly Property RegenHealth() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("RegenHealth", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        '''</summary>
         Friend Shared ReadOnly Property SlimeL() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("SlimeL", resourceCulture)

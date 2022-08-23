@@ -97,28 +97,41 @@ Public Class Form1
     End Class
 
     '自製Button
+    Dim SomeButtonClick As Boolean = False
     Public Class MyButton
         Public Box As RectangleF '按鈕框
         Public Image As Bitmap '按鈕圖片
+        'Public MeClicked As Boolean = False
         Public PressedImage As Bitmap '壓下的按鈕的圖片
         Public Activated As Boolean = False '是否被按下過，預設是 False
         Public Player As WMPLib.WindowsMediaPlayer
 
+        Private Sub Activity(Volume As Double, ByRef SomeButtonClick As Boolean)
+            Activated = False '曾按過 = False
+            '播放音效
+            Player.URL = My.Application.Info.DirectoryPath & "\Music\Click.wav"
+            Player.settings.volume = Volume
+            Player.controls.play()
+            SomeButtonClick = False
+        End Sub
+
         '繪製按鈕
-        Public Function Draw(ByRef e As PaintEventArgs, Mouse As Point, MousePressed As Boolean, Volume As Double) As Integer
+        Public Function Draw(ByRef e As PaintEventArgs, Mouse As Point, MousePressed As Boolean, Volume As Double, ByRef SomeButtonClick As Boolean) As Integer
+            If Not Activated And SomeButtonClick Then
+                e.Graphics.DrawImage(Image, Box)
+                Return 0
+            End If
             If Box.X <= Mouse.X And Mouse.X <= Box.X + Box.Width And Box.Y <= Mouse.Y And Mouse.Y <= Box.Y + Box.Height Then '游標在按鈕上
                 If MousePressed Then '滑鼠按下
                     Activated = True '曾按過 = True
+                    SomeButtonClick = True
                     e.Graphics.DrawImage(PressedImage, Box) '繪製已按過的圖片
                     Return 1 '回傳 「按下，但還沒放開」
                 Else '滑鼠未按
                     e.Graphics.DrawImage(Image, Box) '繪製未按過的圖片
                     If Activated Then '如果曾按過
-                        Activated = False '曾按過 = False
-                        '播放音效
-                        Player.URL = My.Application.Info.DirectoryPath & "\Music\Click.wav"
-                        Player.settings.volume = Volume
-                        Player.controls.play()
+                        SomeButtonClick = False
+                        Activity(Volume, SomeButtonClick)
                         Return 3 '回傳 「放開，已按過，需觸發事件」
                     Else
                         Return 0 '回傳 「放開，未曾按過」
@@ -128,6 +141,7 @@ Public Class Form1
                 If MousePressed Then '滑鼠按下
                     If Activated Then '曾按過
                         Activated = True '按過 = True
+                        SomeButtonClick = True
                         e.Graphics.DrawImage(PressedImage, Box) '繪製已按過的圖片
                         Return 2 '回傳「不再按鈕上，但曾按過，且未放開」
                     Else
@@ -135,6 +149,9 @@ Public Class Form1
                         Return 0 '回傳 「放開，未曾按過」
                     End If
                 Else
+                    If Activated Then
+                        SomeButtonClick = False
+                    End If
                     Activated = False '曾按過 = False
                     e.Graphics.DrawImage(Image, Box) '繪製放開的圖片
                     Return 0 '回傳 「放開，未曾按過」
@@ -358,7 +375,11 @@ Public Class Form1
         Private CharacterHitBoxHeight As Double = 84 / 48 '角色碰撞相高度 (px)
         Private CharacterAttackWidth As Double = 0 '角色左右邊攻擊的繪製偏移X值
 
-        Public CharacterHarmDamage As Double = 5 '角色普通攻擊傷害
+        Public CharacterHarmDamage As Double = 10 '角色普通攻擊傷害
+        Const OriginalCharacterATKDamage As Double = 10
+        Const OriginalCharacterSkillDamage As Double = 32
+        Public CharacterATKDamage As Double = 10
+        Public CharacterSkillDamage As Double = 32
 
         Public CharacterDied As Boolean = False '角色是否死亡
 
@@ -400,6 +421,12 @@ Public Class Form1
             Randomize()
             Return Int(min + Rnd() * (max - min + 1))
         End Function
+
+        '角色攻擊力重置
+        Public Sub CharacterATKReset()
+            CharacterATKDamage = OriginalCharacterATKDamage
+            CharacterSkillDamage = OriginalCharacterSkillDamage
+        End Sub
 
         '角色重置
         Public Sub CharacterReset(x As Double, y As Double)
@@ -585,7 +612,7 @@ Public Class Form1
                             Attack.URL = My.Application.Info.DirectoryPath & "\Music\技能.mp3" '選擇路徑
                             Attack.settings.setMode("loop", False) '設定是否循環
                             Attack.controls.play() '播放
-                            CharacterHarmDamage = RandomInt(25, 40)
+                            CharacterHarmDamage = RandomInt(CharacterSkillDamage + 8, CharacterSkillDamage - 8)
 
                             If BulletDirection Then
                                 BulletImg = My.Resources.Game.AbilityL
@@ -605,7 +632,7 @@ Public Class Form1
                             Attack.URL = My.Application.Info.DirectoryPath & "\Music\射出.mp3" '選擇路徑
                             Attack.settings.setMode("loop", False) '設定是否循環
                             Attack.controls.play() '播放
-                            CharacterHarmDamage = RandomInt(5, 15)
+                            CharacterHarmDamage = RandomInt(CharacterATKDamage + 5, CharacterATKDamage - 5)
 
                             If BulletDirection Then
                                 BulletImg = My.Resources.Game.BulletL
@@ -890,6 +917,7 @@ Public Class Form1
 
         '遊戲音效的撥放器--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Private Hit As New WMPLib.WindowsMediaPlayer
+        Private AddScore As New WMPLib.WindowsMediaPlayer
         Private CharacterBeenHit As New WMPLib.WindowsMediaPlayer
 
         '角色--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -959,6 +987,7 @@ Public Class Form1
         Private LastAnimation As Long = 0 '上次換圖片的時間
 
         Public BossShouldAttack As Boolean = True 'BOSS是否該攻擊
+        Private BossAttackSoundDelay As Long = 250
 
         '與遊戲同步變數
         Public Sub SyncWith(ByRef Game As Game)
@@ -1133,6 +1162,7 @@ Public Class Form1
         Public Sub Draw(ByRef e As PaintEventArgs, ScaleRatio As Double, ByRef CanShoot As Boolean, ByRef CharacterHealth As Double, ByRef CharacterDamage As Double, ByRef CharacterShowDamage As Boolean, ByRef CharacterLastShowDamage As Long, CharacterHarmDamage As Double, volume As Integer, ByRef xp As Integer)
             CharacterBeenHit.settings.volume = volume
             Hit.settings.volume = volume
+            AddScore.settings.volume = volume
 
             '如果怪物還活著
             If MonsterHealth > 0 Then
@@ -1440,12 +1470,14 @@ Public Class Form1
                         CharacterHealth -= CharacterDamage '讓角色受傷
                         CharacterShowDamage = True '讓角色顯示傷害
                         CharacterLastShowDamage = Now.Ticks() / 10000 '更新角色上次顯示傷害時間
-                        LastDamageCharacter = Now.Ticks() / 10000 '更新上次攻擊角色時間
 
-                        '播放被打音效
-                        CharacterBeenHit.URL = My.Application.Info.DirectoryPath & "\Music\被打.mp3" '選擇路徑
-                        CharacterBeenHit.settings.setMode("loop", False) '設定是否循環
-                        CharacterBeenHit.controls.play() '播放
+                        If Now.Ticks() - LastDamageCharacter >= BossAttackSoundDelay Then
+                            '播放被打音效
+                            CharacterBeenHit.URL = My.Application.Info.DirectoryPath & "\Music\被打.mp3" '選擇路徑
+                            CharacterBeenHit.settings.setMode("loop", False) '設定是否循環
+                            CharacterBeenHit.controls.play() '播放
+                            LastDamageCharacter = Now.Ticks() / 10000 '更新上次攻擊角色時間
+                        End If
 
                         CanDamageCharacter = False '不可以傷害角色
                     End If
@@ -1473,9 +1505,9 @@ Public Class Form1
 
                 If RightId <> 5 And RightId <> 9 Then '如果不是Boss或回血包
                     '播放加分音效
-                    Hit.URL = My.Application.Info.DirectoryPath & "\Music\加分.mp3" '選擇路徑
-                    Hit.settings.setMode("loop", False) '設定是否循環
-                    Hit.controls.play() '播放
+                    AddScore.URL = My.Application.Info.DirectoryPath & "\Music\加分.mp3" '選擇路徑
+                    AddScore.settings.setMode("loop", False) '設定是否循環
+                    AddScore.controls.play() '播放
                 End If
             End If
         End Sub
@@ -1484,7 +1516,7 @@ Public Class Form1
     '快速調整設定區--------------------------------------------------------------------------------------------------------------------------------------------
     Dim State As String = "Start" '整個程式的起始點
 
-    Const Version As String = "Release 1.0"
+    Const Version As String = "Release 1.1"
     Const Copyright As String = "III Studio 製作"
 
     Const DefaultWidth As Integer = 800 '預設的寬度
@@ -1530,7 +1562,7 @@ Public Class Form1
 
     'DebugPanel 初始化--------------------------------------------------------------------------------------------------------------------------------------------
     Dim DebugPanelOn As Boolean = DefaultDebugPanelOn
-    Dim DebugInfo As New MyTextBox With {.font = "Consolas", .font_size = 10, .color = Color.Yellow}
+    Dim DebugInfo As New MyTextBox With {.font = "Consolas", .font_size = 10, .color = Color.Green}
 
     '計算幀數的東東--------------------------------------------------------------------------------------------------------------------------------------------
     Dim lastUpdate As Long
@@ -1609,6 +1641,7 @@ Public Class Form1
     Dim IntroTimeCodeStart As Integer() = {12000, 15040, 16704, 19104, 21696, 23392, 26656, 28736, 31360, 34592, 35488, 36864, 38784, 42432, 44150, 46478, 49166, 51086, 52270} '(ms)
     Dim IntroTimeCodeEnd As Integer() = {14816, 16640, 18912, 21632, 23232, 26112, 28608, 31104, 34016, 35296, 36512, 38432, 41920, 44088, 45710, 48878, 50510, 51534, 56750} '(ms)
     Dim OriginalBGMvolume As Integer
+    Dim SkipButtonShow As Boolean
 
     '文字動畫的東西
     Dim TextSpeed As Double = 15
@@ -1727,6 +1760,11 @@ Public Class Form1
     Dim XpBG As New MyPictureBox With {.Image = My.Resources.Game.XPBG}
 
     Dim PauseButton As New MyButton With {.Image = My.Resources.Game.PauseButton, .PressedImage = My.Resources.Game.PauseButtonA, .Player = Ding}
+
+    'GodMode--------------------------------------------------------------------------------------------------------------------------------------------------
+    Dim GodMode As Boolean = False
+    Dim GodModePanel As New MyTextBox With {.font = "Consolas", .font_size = 18, .color = Color.Green}
+
     'DeadMenu--------------------------------------------------------------------------------------------------------------------------------------------
     Dim ShowDeathMenu As Boolean = False
     Dim DiedMessageArray As String() = {"讓家族...蒙羞..了....", "末日審判見~", "見上帝吧！", "我們懷念你", "Rest In Peace"}
@@ -1876,7 +1914,7 @@ Public Class Form1
                 CopyrightInfo.Draw(Copyright, e, myfont, ScaleRatio)
 
                 StartButton.Box = New RectangleF(MyWidth - 332 * ScaleRatio, 97 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If StartButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If StartButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     State = "Intro"
                     IntroStartTime = Now.Ticks() / 10000
                     TextIndex = 0
@@ -1886,7 +1924,7 @@ Public Class Form1
                 End If
 
                 HowToPlayButton.Box = New RectangleF(MyWidth - 289 * ScaleRatio, 170 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If HowToPlayButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If HowToPlayButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     State = "HowToPlay1"
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay1
                     BGisOn = False
@@ -1901,12 +1939,12 @@ Public Class Form1
                 End If
 
                 SettingButton.Box = New RectangleF(MyWidth - 258 * ScaleRatio, 245 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If SettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If SettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     State = "Setting"
                 End If
 
                 ExitButton.Box = New RectangleF(MyWidth - 238 * ScaleRatio, 319 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If ExitButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If ExitButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     State = "Exit"
                 End If
 
@@ -1933,7 +1971,7 @@ Public Class Form1
                 e.Graphics.FillRectangle(Brushes.Black, New RectangleF(MyWidth / 2 - 702 / 2 * ScaleRatio + 702 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth / 2 - 702 / 2 * ScaleRatio, 382.811 * ScaleRatio))
 
                 NextPageButton.Box = New RectangleF(MyWidth / 2 + 175 * ScaleRatio, MyHeight / 2 + 150 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If NextPageButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If NextPageButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     HowToPlay_Img.Image = My.Resources.HowToPlay.HowToPlay2
                     State = "HowToPlay2"
                     DemoGame.CharacterReset(1.1, 1)
@@ -1971,7 +2009,7 @@ Public Class Form1
                 e.Graphics.FillRectangle(Brushes.Black, New RectangleF(MyWidth / 2 - 702 / 2 * ScaleRatio + 702 * ScaleRatio, MyHeight / 2 - 382.811 / 2 * ScaleRatio, MyWidth / 2 - 702 / 2 * ScaleRatio, 382.811 * ScaleRatio))
 
                 NextPageButton.Box = New RectangleF(MyWidth / 2 + 175 * ScaleRatio, MyHeight / 2 + 150 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If NextPageButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If NextPageButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     BGisOn = True
                     State = "Menu"
                 End If
@@ -1994,7 +2032,7 @@ Public Class Form1
                 SoundEffect.settings.volume = SoundEffectSlider.value
 
                 DoneSettingButton.Box = New RectangleF(566 * ScaleRatio, 362 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If DoneSettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If DoneSettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     State = "Menu"
                 End If
 
@@ -2002,6 +2040,7 @@ Public Class Form1
                 Select Case Now.Ticks() / 10000 - IntroStartTime
                     Case 0 To 3000
                         LoadingShow = True
+                        SkipButtonShow = True
                         OriginalBGMvolume = BGM.settings.volume
                         TextAnimationIndex = 0
                         NowShowText = ""
@@ -2014,7 +2053,7 @@ Public Class Form1
                         PlaySound(SoundEffect, "開場配音.wav", False)
 
                     Case IntroTimeCodeEnd(IntroText.Length() - 1) To IntroTimeCodeEnd(IntroText.Length() - 1) + 2000
-
+                        SkipButtonShow = False
                         If (Now.Ticks / 10000 - IntroStartTime) Mod TextSpeed < 30 Then
                             DimScreen += 5
                             If DimScreen >= 255 Then
@@ -2036,6 +2075,7 @@ Public Class Form1
                                 TextAnimationIndex += 1
                             End If
                         ElseIf Now.Ticks() / 10000 - IntroStartTime >= IntroTimeCodeEnd(TextIndex) - 30 Then
+                            NowShowText = ""
                             TextIndex += 1
                             If TextIndex >= IntroText.Length() - 1 Then
                                 TextIndex = IntroText.Length() - 1
@@ -2046,15 +2086,19 @@ Public Class Form1
                         TextAnimationIndex = 0
                         NowShowText = ""
                 End Select
-                ShowText.point.X = MyWidth / 2 - IntroText(TextIndex).Length() / 2 * ShowText.FontHeight(e, myfont, ScaleRatio) + 1.15 * IntroText(TextIndex).Length() * ScaleRatio
-                ShowText.point.Y = MyHeight / 2
-                ShowText.Draw(NowShowText, e, myfont, ScaleRatio)
+                If Not NowShowText = "" Then
+                    ShowText.point.X = MyWidth / 2 - IntroText(TextIndex).Length() / 2 * ShowText.FontHeight(e, myfont, ScaleRatio) + 1.15 * IntroText(TextIndex).Length() * ScaleRatio
+                    ShowText.point.Y = MyHeight / 2
+                    ShowText.Draw(NowShowText, e, myfont, ScaleRatio)
+                End If
 
-                SkipButton.Box = New RectangleF(MyWidth - 104 * ScaleRatio, 20 * ScaleRatio, 81.695 * ScaleRatio, 21.4067 * ScaleRatio)
-                If SkipButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
-                    State = "ToSelectLevel"
-                    MainGame.level = 0
-                    LevelPreview.Image = My.Resources.SelectLevel._1_1Preview
+                If SkipButtonShow Then
+                    SkipButton.Box = New RectangleF(MyWidth - 104 * ScaleRatio, 20 * ScaleRatio, 81.695 * ScaleRatio, 21.4067 * ScaleRatio)
+                    If SkipButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
+                        State = "ToSelectLevel"
+                        MainGame.level = 0
+                        LevelPreview.Image = My.Resources.SelectLevel._1_1Preview
+                    End If
                 End If
 
                 e.Graphics.FillRectangle(New SolidBrush(Color.FromArgb(DimScreen, 0, 0, 0)), New Rectangle(0, 0, MyWidth, MyHeight))
@@ -2069,25 +2113,25 @@ Public Class Form1
                 SettingText.Draw("選擇關卡  關卡 1-" & CStr(MainGame.level + 1), e, myfont, ScaleRatio)
 
                 Button11.Box = New RectangleF(64 * ScaleRatio, 140 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
-                If Button11.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If Button11.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     MainGame.level = 0
                     MainGame.Map = MainGame1_Map
                     LevelPreview.Image = My.Resources.SelectLevel._1_1Preview
                 End If
                 Button12.Box = New RectangleF(64 * ScaleRatio, 206 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
-                If Button12.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If Button12.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     MainGame.level = 1
                     MainGame.Map = MainGame2_Map
                     LevelPreview.Image = My.Resources.SelectLevel._1_2Preview
                 End If
                 Button13.Box = New RectangleF(64 * ScaleRatio, 272 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
-                If Button13.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If Button13.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     MainGame.level = 2
                     MainGame.Map = MainGame3_Map
                     LevelPreview.Image = My.Resources.SelectLevel._1_3Preview
                 End If
                 Button14.Box = New RectangleF(64 * ScaleRatio, 338 * ScaleRatio, 93.5 * ScaleRatio, 49 * ScaleRatio)
-                If Button14.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If Button14.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     MainGame.level = 3
                     MainGame.Map = MainGame4_Map
                     LevelPreview.Image = My.Resources.SelectLevel._1_4Preview
@@ -2097,7 +2141,7 @@ Public Class Form1
                 LevelPreview.Draw(e)
 
                 LevelDoneButton.Box = New RectangleF(566 * ScaleRatio, 362 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If LevelDoneButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If LevelDoneButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     State = "ToGame"
                 End If
 
@@ -2387,7 +2431,7 @@ Public Class Form1
                 If Not MainGame.Pause And Not MainGame.CharacterDied Then
                     '暫停按鈕設定外框
                     PauseButton.Box = New RectangleF(147 * ScaleRatio, MyHeight - 31 * ScaleRatio, 40.8475 * ScaleRatio, 21.4067 * ScaleRatio)
-                    If PauseButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then '如果按下按鈕
+                    If PauseButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then '如果按下按鈕
                         BGM.controls.pause() 'BGM暫停
                         BGisOn = True '顯示背景
                         MainGame.Pause = True '暫停遊戲
@@ -2401,19 +2445,19 @@ Public Class Form1
 
                     '畫按鈕------------------------------------
                     ToMenuButton.Box = New RectangleF(MyWidth / 2 - 309 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                    If ToMenuButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                    If ToMenuButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                         State = "ToMenu"
                     End If
 
                     ContinueButton.Box = New RectangleF(MyWidth / 2 - 93 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                    If ContinueButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                    If ContinueButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                         BGM.controls.play()
                         BGisOn = False
                         MainGame.Pause = False
                     End If
 
                     SettingButton.Box = New RectangleF(MyWidth / 2 + 123 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                    If SettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                    If SettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                         State = "InGameSetting"
                     End If
 
@@ -2442,19 +2486,19 @@ Public Class Form1
                 SoundEffect.settings.volume = SoundEffectSlider.value
 
                 DoneSettingButton.Box = New RectangleF(566 * ScaleRatio, 362 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If DoneSettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If DoneSettingButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     State = "Game"
                 End If
 
             '死亡介面
             Case "DiedMenu"
                 EndButton.Box = New RectangleF(MyWidth / 2 - 210 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If EndButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If EndButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     State = "ToMenu"
                 End If
 
                 ReplayButton.Box = New RectangleF(MyWidth / 2 + 25 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If ReplayButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If ReplayButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     State = "ToGame"
                 End If
 
@@ -2480,7 +2524,7 @@ Public Class Form1
                 EndGameXpText.Draw("分數 " & CStr(Xp), e, myfont, ScaleRatio)
 
                 ToMenuButton.Box = New RectangleF(MyWidth / 2 - 187 / 2 * ScaleRatio, MyHeight / 2 + 111 * ScaleRatio, 187 * ScaleRatio, 49 * ScaleRatio)
-                If ToMenuButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume) = 3 Then
+                If ToMenuButton.Draw(e, Mouse, MousePressed, SoundEffect.settings.volume, SomeButtonClick) = 3 Then
                     State = "ToMenu"
                 End If
 
@@ -2491,6 +2535,17 @@ Public Class Form1
                 WMPExit(Ding)
                 Me.Close()
         End Select
+
+        '作弊模式開---------------------------------------------------------------------------------------------------------------------------------------------
+        If GodMode Then
+            MainGame.CharacterHealth = 100000000
+            MainGame.CharacterATKDamage = 1000
+            MainGame.CharacterSkillDamage = 1000
+            GodModePanel.point.X = MyWidth
+            GodModePanel.point.Y = 0
+            GodModePanel.Align = "Right"
+            GodModePanel.Draw("GodMode On", e, myfont, ScaleRatio)
+        End If
 
         '除錯面板開-------------------------------------------------------------------------------------------------------------------------------------------
         If DebugPanelOn Then
@@ -2505,11 +2560,12 @@ Public Class Form1
                            "State " & State & vbNewLine & vbNewLine &
                            "BGM.volume = " & CStr(BGM.settings.volume) & vbNewLine &
                            "SE.volume = " & CStr(SoundEffect.settings.volume) & vbNewLine &
-                           "Ding.volume = " & CStr(Ding.settings.volume),
+                           "Ding.volume = " & CStr(Ding.settings.volume) & vbNewLine & vbNewLine &
+                           "SomeButtonClick = " & CStr(SomeButtonClick),
                            e, myfont, ScaleRatio)
 
-            e.Graphics.DrawLine(New Pen(Color.Yellow), New PointF(0, MyHeight / 2), New PointF(MyWidth, MyHeight / 2))
-            e.Graphics.DrawLine(New Pen(Color.Yellow), New PointF(MyWidth / 2, 0), New PointF(MyWidth / 2, MyHeight))
+            e.Graphics.DrawLine(New Pen(Color.Green), New PointF(0, MyHeight / 2), New PointF(MyWidth, MyHeight / 2))
+            e.Graphics.DrawLine(New Pen(Color.Green), New PointF(MyWidth / 2, 0), New PointF(MyWidth / 2, MyHeight))
             lastUpdate = Now.Ticks() / 10000
         End If
     End Sub
@@ -2593,6 +2649,14 @@ Public Class Form1
 
         If e.KeyCode = Keys.F3 Then
             DebugPanelOn = Not DebugPanelOn
+        End If
+
+        If e.KeyCode = Keys.F7 Then
+            GodMode = Not GodMode
+            If Not GodMode Then
+                MainGame.CharacterHealthReset()
+                MainGame.CharacterATKReset()
+            End If
         End If
 
         If e.KeyCode = Keys.Escape Then

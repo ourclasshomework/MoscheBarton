@@ -1,0 +1,74 @@
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\Bach Air on the G String.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\Click.wav
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\MenuBGM.wav
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\Mozart Reqium Dies Irae.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\加分.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\勝利結束.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\射出.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\打到.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\技能.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\死掉.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\被打.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\補血.mp3
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\開場配音.wav
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\MoscheBarton.exe.config
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\MoscheBarton.exe
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\MoscheBarton.pdb
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\MoscheBarton.xml
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.vbproj.AssemblyReference.cache
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.vbproj.SuggestedBindingRedirects.cache
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\Interop.WMPLib.dll
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.vbproj.ResolveComReference.cache
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Form1.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Resources.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Fonts.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Menu.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.HowToPlay.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Game.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Loading.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Intro.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.DiedMenu.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.SelectLevel.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Setting.resources
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.vbproj.GenerateResource.cache
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.vbproj.CoreCompileInputs.cache
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.exe
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.xml
+D:\OneDrive\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.pdb
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\Bach Air on the G String.mp3
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\Click.wav
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\MenuBGM.wav
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\Mozart Reqium Dies Irae.mp3
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\加分.mp3
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\勝利結束.mp3
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\射出.mp3
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\打到.mp3
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\技能.mp3
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\死掉.mp3
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\被打.mp3
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\補血.mp3
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\Music\開場配音.wav
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\MoscheBarton.exe.config
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\MoscheBarton.exe
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\MoscheBarton.pdb
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\bin\x64\Release\MoscheBarton.xml
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.vbproj.AssemblyReference.cache
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.vbproj.SuggestedBindingRedirects.cache
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\Interop.WMPLib.dll
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.vbproj.ResolveComReference.cache
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Form1.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Resources.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Fonts.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Menu.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.HowToPlay.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Game.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Loading.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Intro.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.DiedMenu.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.SelectLevel.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.Setting.resources
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.vbproj.GenerateResource.cache
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.vbproj.CoreCompileInputs.cache
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.exe
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.xml
+D:\OneDrive\文件\學習歷程檔案\110_2\學習成果\邵恆侑 - 生活科技 - Visual Basic 資訊專題報告\資訊專題報告\MoscheBarton\MoscheBarton\obj\x64\Release\MoscheBarton.pdb
